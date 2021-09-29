@@ -13,11 +13,16 @@ bool resize = true;
 int squareSize = windowHEIGHT/8;
 int startingPosx, startingPosy = 0;
 int w, h;
-const SDL_Colour background{ 89, 73, 51,255 };
-const SDL_Colour darkSquare{ 66, 26, 7,255 };
-const SDL_Colour lightSquare{ 245, 214, 171,255 };
+int mousePosX, mousePosY;
+int squareClickedX, squareClickedY = 0;
+uint8_t pieceHeld = 0;
+const float pieceScale[6] = { 0.7,0.8,0.8,0.8,0.8,0.8 };
+const float pieceScalerW[6] = { 0.95,1,1,1,1,1 };
+const SDL_Colour background{ 83, 94, 93,255 };
+const SDL_Colour darkSquare{ 49, 51, 51,255 };
+const SDL_Colour lightSquare{ 225, 235, 234,255 };
 SDL_Texture* texture[12] = { NULL };
-SDL_Rect rect;
+uint8_t board[8][8] = { {0} };
 
 SDL_Renderer* renderer;
 SDL_Window* window;
@@ -44,7 +49,7 @@ void drawBackground() {
 
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < HEIGHT; y++) {
-			if ((x + y) % 2 == 0) drawSquare(darkSquare, 
+			if ((x + y) % 2 == 1) drawSquare(darkSquare, 
 				x * squareSize + startingPosx, 
 				y * squareSize + startingPosy, 
 				squareSize, squareSize);
@@ -59,19 +64,19 @@ void drawBackground() {
 void init() {
 	SDL_Surface* temp = NULL;
 
-	 char files[12][12] = {
-		"pawn.bmp",
-		"pawnb.bmp",
-		"king.bmp",
-		"kingb.bmp",
-		"queen.bmp",
-		"queenb.bmp",
-		"knight.bmp",
-		"kinghtb.bmp",
-		"rook.bmp",
-		"rookb.bmp",
-		"bishop.bmp",
-		"bishopb.bmp",
+	char files[12][12] = {
+	   "pawn.bmp",
+	   "knight.bmp",
+	   "bishop.bmp",
+	   "rook.bmp",
+	   "queen.bmp",
+	   "king.bmp",
+	   "pawnb.bmp",
+	   "knightb.bmp",
+	   "bishopb.bmp",
+	   "rookb.bmp",
+	   "queenb.bmp",
+	   "kingb.bmp",
 	};
 
 	for (int i = 0; i < 12; i++) {
@@ -79,30 +84,62 @@ void init() {
 
 		texture[i] = SDL_CreateTextureFromSurface(renderer, temp);
 	}
-	
-	SDL_FreeSurface(temp);
 
-	rect.x = 0;
-	rect.y = 200;
-	rect.w = squareSize * 0.8;
-	rect.h = squareSize * 0.8;
+	SDL_FreeSurface(temp);
 }
 
 void update() {
-	rect.w = squareSize * 0.8;
-	rect.h = squareSize * 0.8;
+	for (int x = 0; x < WIDTH; x++) {
+		for (int y = 0; y < HEIGHT; y++) {
+			if ((board[y][x] & 0b00111111) != 0) {
+				int piece = log2(board[y][x] & 0b00111111);
+				int colour = (board[y][x] & 0b10000000) >> 7;
+
+				SDL_Rect pos;
+				pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
+				pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
+				pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
+				pos.h = squareSize * pieceScale[piece];
+
+				SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
+			}
+		}
+	}
+
+	if (squareClickedX >= 0 && squareClickedX < 8 && squareClickedY >= 0 && squareClickedY < 8) {
+		if (board[squareClickedY][squareClickedX] == 0 && pieceHeld != 0) {
+			board[squareClickedY][squareClickedX] = pieceHeld;
+			pieceHeld = 0;
+			squareClickedX = squareClickedY = INFINITY;
+		}
+		if (board[squareClickedY][squareClickedX] != 0) {
+			pieceHeld = board[squareClickedY][squareClickedX];
+			board[squareClickedY][squareClickedX] = 0;
+			squareClickedX = squareClickedY = INFINITY;
+		}
+	}
+
+
+	if (pieceHeld != 0) {
+		int piece = log2(pieceHeld & 0b00111111);
+		int colour = (pieceHeld & 0b10000000) >> 7;
+
+		SDL_Rect rect;
+		rect.x = mousePosX - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
+		rect.y = mousePosY - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
+		rect.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
+		rect.h = squareSize * pieceScale[piece];
+
+		SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
+	}
 }
 
-void render() {
+void renderScreen() {
 	SDL_SetRenderDrawColor(renderer, background.r, background.g, background.b, background.a);
 
 	SDL_RenderClear(renderer);
 
 	drawBackground();
-
-	SDL_RenderCopy(renderer, texture[0], NULL, &rect);
-
-	SDL_RenderPresent(renderer);
 }
 
 void handleEvents() {
@@ -130,7 +167,71 @@ void handleEvents() {
 					break;
 			}
 			break;
+
+		case SDL_MOUSEMOTION:
+			SDL_GetMouseState(&mousePosX, &mousePosY);
+			break;
+
+		case SDL_MOUSEBUTTONDOWN:
+			int squareX = (mousePosX - startingPosx) / squareSize;
+			int squareY = (mousePosY - startingPosy) / squareSize;
+			if (squareX >= 0 && squareX < 8 && squareY >= 0 && squareY < 8) {
+				squareClickedX = floor(squareX);
+				squareClickedY = floor(squareY);
+			}
+			else {
+				squareClickedX = squareClickedY = INFINITY;
+			}
+			break;
 	};
+}
+
+void loadBoardFromFen(std::string fen) {
+	int pointerX = 0;
+	int pointerY = 0;
+	for (char i : fen) {
+		if (i != toupper(i)) {
+			board[pointerY][pointerX] |= 0b10000000;
+		}
+
+		switch (tolower(i)){
+		case 'r':
+			board[pointerY][pointerX] |= 0b00001000;
+			pointerX++;
+			break;
+		case 'k':
+			board[pointerY][pointerX] |= 0b00100000;
+			pointerX++;
+			break;
+		case 'p':
+			board[pointerY][pointerX] |= 0b00000001;
+			pointerX++;
+			break;
+		case 'n':
+			board[pointerY][pointerX] |= 0b00000010;
+			pointerX++;
+			break;
+		case 'b':
+			board[pointerY][pointerX] |= 0b00000100;
+			pointerX++;
+			break;
+		case 'q':
+			board[pointerY][pointerX] |= 0b00010000; 
+			pointerX++;
+			break;
+		default:
+			if (i == '/') {
+				pointerY++;
+				pointerX = 0;
+			}
+			else if (i - 48 > 0 && i - 48 < 9) {
+				pointerX += i - 48;
+			}
+			break;
+		}
+
+		if (pointerX > 8 || pointerY > 8) break;		
+	}
 }
 
 int main(int argc, char *argv[]) {
@@ -146,10 +247,14 @@ int main(int argc, char *argv[]) {
 
 	init();
 
+	loadBoardFromFen("rnbqkbnr / pppppppp / 8 / 8 / 8 / 8 / PPPPPPPP / RNBQKBNR");
+
 	while (isRunning) {
 		handleEvents();
+		renderScreen();
 		update();
-		render();
+
+		SDL_RenderPresent(renderer);
 	}
 
 	return 0;
