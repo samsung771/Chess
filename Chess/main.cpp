@@ -104,23 +104,6 @@ bool isInCheck(int x, int y) {
 }
 
 void update() {
-	for (int x = 0; x < WIDTH; x++) {
-		for (int y = 0; y < HEIGHT; y++) {
-			if ((board[y][x] & 0b00111111) != 0) {
-				int piece = log2(board[y][x] & 0b00111111);
-				int colour = (board[y][x] & 0b10000000) >> 7;
-
-				SDL_Rect pos;
-				pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
-				pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
-				pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
-				pos.h = squareSize * pieceScale[piece];
-
-				SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
-			}
-		}
-	}
-
 	if (mouseClick) {
 		int squareX = floor((mousePosX - startingPosx) / squareSize);
 		int squareY = floor((mousePosY - startingPosy) / squareSize);
@@ -161,7 +144,31 @@ void update() {
 		}
 		mouseClick = false;
 	}
+}
 
+void renderScreen() {
+	SDL_SetRenderDrawColor(renderer, background.r, background.g, background.b, background.a);
+
+	SDL_RenderClear(renderer);
+
+	drawBackground();
+
+	for (int x = 0; x < WIDTH; x++) {
+		for (int y = 0; y < HEIGHT; y++) {
+			if ((board[y][x] & 0b00111111) != 0) {
+				int piece = log2(board[y][x] & 0b00111111);
+				int colour = (board[y][x] & 0b10000000) >> 7;
+
+				SDL_Rect pos;
+				pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
+				pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
+				pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
+				pos.h = squareSize * pieceScale[piece];
+
+				SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
+			}
+		}
+	}
 
 	if (pieceHeld != 0) {
 		int piece = log2(pieceHeld & 0b00111111);
@@ -175,14 +182,8 @@ void update() {
 
 		SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
 	}
-}
 
-void renderScreen() {
-	SDL_SetRenderDrawColor(renderer, background.r, background.g, background.b, background.a);
-
-	SDL_RenderClear(renderer);
-
-	drawBackground();
+	SDL_RenderPresent(renderer);
 }
 
 void handleEvents() {
@@ -288,8 +289,6 @@ int main(int argc, char *argv[]) {
 		handleEvents();
 		renderScreen();
 		update();
-
-		SDL_RenderPresent(renderer);
 	}
 
 	return 0;
