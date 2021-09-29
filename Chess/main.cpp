@@ -2,11 +2,15 @@
 #include <windows.h>
 #include <string>
 
-#define WIDTH 8
+#define WIDTH  8
 #define HEIGHT 8
 
-#define windowWIDTH 600
-#define windowHEIGHT 400
+#define COLOURMASK 0b10000000
+#define MOVEMASK   0b01000000
+#define PIECEMASK  0b00111111
+
+#define windowWIDTH  800
+#define windowHEIGHT 600
 
 bool isRunning = true;
 bool resize = true; 
@@ -14,15 +18,18 @@ int squareSize = windowHEIGHT/8;
 int startingPosx, startingPosy = 0;
 int w, h;
 int mousePosX, mousePosY;
-int squareClickedX, squareClickedY = 0;
+bool mouseClick = 0;
+bool isWhiteTurn = 1;
+int pieceHeldX, pieceHeldY;
 uint8_t pieceHeld = 0;
+SDL_Texture* texture[12] = { NULL };
+uint8_t board[8][8] = { {0} };
+
 const float pieceScale[6] = { 0.7,0.8,0.8,0.8,0.8,0.8 };
 const float pieceScalerW[6] = { 0.95,1,1,1,1,1 };
 const SDL_Colour background{ 83, 94, 93,255 };
 const SDL_Colour darkSquare{ 49, 51, 51,255 };
 const SDL_Colour lightSquare{ 225, 235, 234,255 };
-SDL_Texture* texture[12] = { NULL };
-uint8_t board[8][8] = { {0} };
 
 SDL_Renderer* renderer;
 SDL_Window* window;
@@ -38,8 +45,8 @@ void drawBackground() {
 	if (resize) {
 		SDL_GetWindowSize(window, &w, &h);
 
-		if (w > h) squareSize = h / 8;
-		else squareSize = w / 8;
+		if (w > h) squareSize = h / HEIGHT;
+		else squareSize = w / WIDTH;
 
 		startingPosx = w / 2 - squareSize * 4;
 		startingPosy = h / 2 - squareSize * 4;
@@ -88,6 +95,14 @@ void init() {
 	SDL_FreeSurface(temp);
 }
 
+bool isValid(int x, int y) {
+	return true;
+}
+
+bool isInCheck(int x, int y) {
+	return false;
+}
+
 void update() {
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < HEIGHT; y++) {
@@ -106,23 +121,51 @@ void update() {
 		}
 	}
 
-	if (squareClickedX >= 0 && squareClickedX < 8 && squareClickedY >= 0 && squareClickedY < 8) {
-		if (board[squareClickedY][squareClickedX] == 0 && pieceHeld != 0) {
-			board[squareClickedY][squareClickedX] = pieceHeld;
-			pieceHeld = 0;
-			squareClickedX = squareClickedY = INFINITY;
+	if (mouseClick) {
+		int squareX = floor((mousePosX - startingPosx) / squareSize);
+		int squareY = floor((mousePosY - startingPosy) / squareSize);
+
+		uint8_t player = isWhiteTurn ? 0b10000000 : 0;
+
+		if (squareX >= 0 && squareX < 8 && squareY >= 0 && squareY < 8) {
+			int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
+
+			//place piece
+			if (board[squareY][squareX] == 0 && pieceHeld != 0) {
+				board[squareY][squareX] = pieceHeld;
+				pieceHeld = 0;
+
+				isWhiteTurn = !isWhiteTurn;
+			}
+
+			else if (colour == !isWhiteTurn) {
+				//pickup piece
+				if (board[squareY][squareX] != 0 && pieceHeld == 0) {
+					pieceHeld = board[squareY][squareX];
+					board[squareY][squareX] = 0;
+					pieceHeldX = squareX;
+					pieceHeldY = squareY;
+				}
+				else if (board[squareY][squareX] != 0 && pieceHeld != 0) {
+					board[pieceHeldY][pieceHeldX] = pieceHeld;
+					pieceHeld = 0;
+				}
+			}
+			//capture piece
+			else if (board[squareY][squareX] != 0 && pieceHeld != 0) {
+				board[squareY][squareX] = pieceHeld;
+				pieceHeld = 0;
+
+				isWhiteTurn = !isWhiteTurn;
+			}
 		}
-		if (board[squareClickedY][squareClickedX] != 0) {
-			pieceHeld = board[squareClickedY][squareClickedX];
-			board[squareClickedY][squareClickedX] = 0;
-			squareClickedX = squareClickedY = INFINITY;
-		}
+		mouseClick = false;
 	}
 
 
 	if (pieceHeld != 0) {
 		int piece = log2(pieceHeld & 0b00111111);
-		int colour = (pieceHeld & 0b10000000) >> 7;
+		int colour = (pieceHeld & COLOURMASK) >> 7;
 
 		SDL_Rect rect;
 		rect.x = mousePosX - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
@@ -173,15 +216,7 @@ void handleEvents() {
 			break;
 
 		case SDL_MOUSEBUTTONDOWN:
-			int squareX = (mousePosX - startingPosx) / squareSize;
-			int squareY = (mousePosY - startingPosy) / squareSize;
-			if (squareX >= 0 && squareX < 8 && squareY >= 0 && squareY < 8) {
-				squareClickedX = floor(squareX);
-				squareClickedY = floor(squareY);
-			}
-			else {
-				squareClickedX = squareClickedY = INFINITY;
-			}
+			mouseClick = true;
 			break;
 	};
 }
