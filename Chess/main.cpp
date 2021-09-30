@@ -22,7 +22,7 @@
 
 bool isRunning = true;
 bool resize = true; 
-int squareSize = windowHEIGHT/8;
+int squareSize = windowHEIGHT/HEIGHT;
 int startingPosx, startingPosy = 0;
 int w, h;
 int mousePosX, mousePosY;
@@ -44,7 +44,7 @@ SDL_Window* window;
 
 #define getPiece(x,y)\
 int piece = log2(board[y][x] & PIECEMASK);\
-int colour = (board[y][x] & COLOURMASK) >> 7;\
+int colour = (board[y][x] & COLOURMASK) >> 7;
 
 void drawSquare(SDL_Colour colour, int x, int y, int w, int h){
 	SDL_SetRenderDrawColor(renderer, colour.r, colour.g, colour.b, colour.a);
@@ -83,6 +83,7 @@ void drawBackground() {
 void init() {
 	SDL_Surface* temp = NULL;
 
+	//files for bmp
 	char files[12][12] = {
 	   "pawn.bmp",
 	   "knight.bmp",
@@ -98,12 +99,14 @@ void init() {
 	   "kingb.bmp",
 	};
 
+	//load texture
 	for (int i = 0; i < 12; i++) {
 		temp = SDL_LoadBMP(files[i]);
 
 		texture[i] = SDL_CreateTextureFromSurface(renderer, temp);
 	}
 
+	//delete temporary files
 	SDL_FreeSurface(temp);
 }
 
@@ -128,7 +131,7 @@ void update() {
 
 		uint8_t player = isWhiteTurn ? COLOURMASK : 0;
 
-		if (squareX >= 0 && squareX < 8 && squareY >= 0 && squareY < 8) {
+		if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
 			int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
 
 			//place piece
@@ -171,10 +174,11 @@ void renderScreen() {
 	SDL_RenderClear(renderer);
 
 	drawBackground();
-
+	
+	//render pieces
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < HEIGHT; y++) {
-			if ((board[y][x] & 0b00111111) != 0) {
+			if ((board[y][x] & PIECEMASK) != 0) {
 				getPiece(x, y);
 
 				SDL_Rect pos;
@@ -188,6 +192,7 @@ void renderScreen() {
 		}
 	}
 
+	//render pieceHeld at the mouse
 	if (pieceHeld != 0) {
 		int piece = log2(pieceHeld & PIECEMASK);
 		int colour = (pieceHeld & COLOURMASK) >> 7;
@@ -243,12 +248,14 @@ void handleEvents() {
 void loadBoardFromFen(std::string fen) {
 	int pointerX = 0;
 	int pointerY = 0;
+
 	for (char i : fen) {
 		bool isWhite = true;
 		if (i != toupper(i)) {
 			isWhite = false;
 			board[pointerY][pointerX] |= COLOURMASK;
 		}
+
 		if (pointerY < 8)
 			switch (tolower(i)){
 			case 'r':
@@ -287,8 +294,6 @@ void loadBoardFromFen(std::string fen) {
 				}
 				break;
 			}
-
-		if (pointerX > 8 || pointerY > 8) break;		
 	}
 }
 
@@ -305,7 +310,7 @@ int main(int argc, char *argv[]) {
 
 	init();
 
-	loadBoardFromFen("rnbqkbnr / pppppppp / 8 / 8 / 8 / 8 / PPPPPPPP / RNBQKBNR");
+	loadBoardFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
 
 	while (isRunning) {
 		handleEvents();
