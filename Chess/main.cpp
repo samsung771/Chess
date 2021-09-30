@@ -1,6 +1,7 @@
 #include "SDL.h"
 #include <windows.h>
 #include <string>
+#include <vector>
 
 #define WIDTH  8
 #define HEIGHT 8
@@ -8,6 +9,13 @@
 #define COLOURMASK 0b10000000
 #define MOVEMASK   0b01000000
 #define PIECEMASK  0b00111111
+
+#define PAWN	   0b00000001
+#define KNIGHT	   0b00000010
+#define BISHOP	   0b00000100
+#define ROOK	   0b00001000
+#define QUEEN	   0b00010000
+#define KING	   0b00100000
 
 #define windowWIDTH  800
 #define windowHEIGHT 600
@@ -33,6 +41,10 @@ const SDL_Colour lightSquare{ 225, 235, 234,255 };
 
 SDL_Renderer* renderer;
 SDL_Window* window;
+
+#define getPiece(x,y)\
+int piece = log2(board[y][x] & PIECEMASK);\
+int colour = (board[y][x] & COLOURMASK) >> 7;\
 
 void drawSquare(SDL_Colour colour, int x, int y, int w, int h){
 	SDL_SetRenderDrawColor(renderer, colour.r, colour.g, colour.b, colour.a);
@@ -95,12 +107,18 @@ void init() {
 	SDL_FreeSurface(temp);
 }
 
-bool isValid(int x, int y) {
-	return true;
-}
-
-bool isInCheck(int x, int y) {
-	return false;
+std::vector<std::vector<int>> availableMoves(int x, int y) {
+	getPiece(x, y);
+	switch (piece) {
+	case PAWN:
+	case KNIGHT:
+	case BISHOP:
+	case ROOK:
+	case QUEEN:
+	case KING:
+		break;
+	}
+	return { {0,0} };
 }
 
 void update() {
@@ -108,7 +126,7 @@ void update() {
 		int squareX = floor((mousePosX - startingPosx) / squareSize);
 		int squareY = floor((mousePosY - startingPosy) / squareSize);
 
-		uint8_t player = isWhiteTurn ? 0b10000000 : 0;
+		uint8_t player = isWhiteTurn ? COLOURMASK : 0;
 
 		if (squareX >= 0 && squareX < 8 && squareY >= 0 && squareY < 8) {
 			int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
@@ -118,7 +136,8 @@ void update() {
 				board[squareY][squareX] = pieceHeld;
 				pieceHeld = 0;
 
-				isWhiteTurn = !isWhiteTurn;
+				if (squareX != pieceHeldX || squareY != pieceHeldY)
+					isWhiteTurn = !isWhiteTurn;
 			}
 
 			else if (colour == !isWhiteTurn) {
@@ -156,8 +175,7 @@ void renderScreen() {
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < HEIGHT; y++) {
 			if ((board[y][x] & 0b00111111) != 0) {
-				int piece = log2(board[y][x] & 0b00111111);
-				int colour = (board[y][x] & 0b10000000) >> 7;
+				getPiece(x, y);
 
 				SDL_Rect pos;
 				pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
@@ -171,7 +189,7 @@ void renderScreen() {
 	}
 
 	if (pieceHeld != 0) {
-		int piece = log2(pieceHeld & 0b00111111);
+		int piece = log2(pieceHeld & PIECEMASK);
 		int colour = (pieceHeld & COLOURMASK) >> 7;
 
 		SDL_Rect rect;
@@ -226,45 +244,49 @@ void loadBoardFromFen(std::string fen) {
 	int pointerX = 0;
 	int pointerY = 0;
 	for (char i : fen) {
+		bool isWhite = true;
 		if (i != toupper(i)) {
-			board[pointerY][pointerX] |= 0b10000000;
+			isWhite = false;
+			board[pointerY][pointerX] |= COLOURMASK;
 		}
-
-		switch (tolower(i)){
-		case 'r':
-			board[pointerY][pointerX] |= 0b00001000;
-			pointerX++;
-			break;
-		case 'k':
-			board[pointerY][pointerX] |= 0b00100000;
-			pointerX++;
-			break;
-		case 'p':
-			board[pointerY][pointerX] |= 0b00000001;
-			pointerX++;
-			break;
-		case 'n':
-			board[pointerY][pointerX] |= 0b00000010;
-			pointerX++;
-			break;
-		case 'b':
-			board[pointerY][pointerX] |= 0b00000100;
-			pointerX++;
-			break;
-		case 'q':
-			board[pointerY][pointerX] |= 0b00010000; 
-			pointerX++;
-			break;
-		default:
-			if (i == '/') {
+		if (pointerY < 8)
+			switch (tolower(i)){
+			case 'r':
+				board[pointerY][pointerX] |= ROOK;
+				pointerX++;
+				break;
+			case 'k':
+				board[pointerY][pointerX] |= KING;
+				pointerX++;
+				break;
+			case 'p':
+				if (pointerY == 1 && !isWhite) board[pointerY][pointerX] |= MOVEMASK;
+				else if (pointerY == 6) board[pointerY][pointerX] |= MOVEMASK;
+				board[pointerY][pointerX] |= PAWN;
+				pointerX++;
+				break;
+			case 'n':
+				board[pointerY][pointerX] |= KNIGHT;
+				pointerX++;
+				break;
+			case 'b':
+				board[pointerY][pointerX] |= BISHOP;
+				pointerX++;
+				break;
+			case 'q':
+				board[pointerY][pointerX] |= QUEEN; 
+				pointerX++;
+				break;
+			case '/':
 				pointerY++;
 				pointerX = 0;
+				break;
+			default:
+				if (i - 48 > 0 && i - 48 < 9) {
+					pointerX += i - 48;
+				}
+				break;
 			}
-			else if (i - 48 > 0 && i - 48 < 9) {
-				pointerX += i - 48;
-			}
-			break;
-		}
 
 		if (pointerX > 8 || pointerY > 8) break;		
 	}
