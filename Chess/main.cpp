@@ -31,6 +31,15 @@ int rookMoves[4][2] = {
 	{-1,1},
 	{1,-1},
 	{-1,-1}
+}; int knightMoves[8][2] = {
+	{2,1},
+	{2,-1},
+	{1,2},
+	{-1,2},
+	{-2,1},
+	{-2,-1},
+	{1,-2},
+	{-1,-2}
 }; int allMoves[8][2] = {
 	{1,1},
 	{-1,1},
@@ -41,7 +50,6 @@ int rookMoves[4][2] = {
 	{0,-1},
 	{0,1}
 };
-
 bool isRunning = true;
 bool resize = true; 
 int squareSize = windowHEIGHT/HEIGHT;
@@ -183,6 +191,10 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 		}
 		break;
 	case KNIGHT:
+		for (int i = 0; i < 8; i++) {
+			for (std::vector<int> i : raycast(x, y, knightMoves[i][0], knightMoves[i][1], 1, !colour))
+				possibleMoves.push_back(i);
+		}
 		break;
 	case BISHOP:
 		for (int i = 0; i < 4; i++) {
@@ -206,6 +218,27 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 		for (int i = 0; i < 8; i++) {
 			for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 1, !colour))
 				possibleMoves.push_back(i);
+		}
+		//check for castling
+		if (!hasMoved) {
+			//kingside
+			for (std::vector<int> i : raycast(x, y, 1, 0, 2, !colour)) {
+				int piece = log2(board[y][x+1] & PIECEMASK); 
+				bool Rookcolour = (board[y][x+1] & COLOURMASK) >> 7; 
+				bool RookhasMoved = !(board[y][x+1] & MOVEMASK) >> 6;
+
+				if (piece == 3 && RookhasMoved && Rookcolour == colour);
+					possibleMoves.push_back({ x + 2,y,0 });
+			}
+			//queenside
+			for (std::vector<int> i : raycast(x, y, -1, 0, 3, !colour)) {
+				int piece = log2(board[y][x - 1] & PIECEMASK);
+				bool Rookcolour = (board[y][x - 1] & COLOURMASK) >> 7;
+				bool RookhasMoved = !(board[y][x - 1] & MOVEMASK) >> 6;
+
+				if (piece == 3 && RookhasMoved && Rookcolour == colour);
+				possibleMoves.push_back({ x - 2,y,0 });
+			}
 		}
 		break;
 	}
@@ -236,6 +269,17 @@ void update() {
 						if (i[0] == squareX && i[1] == squareY) {
 							board[squareY][squareX] = pieceHeld;
 							pieceHeld = 0;
+
+							if ((board[squareY][squareX] & PIECEMASK) == KING && abs(squareX - pieceHeldX) == 2) {
+								if (squareX - pieceHeldX < 0) {
+									board[squareY][squareX + 1] = board[squareY][0];
+									board[squareY][0] = 0;
+								}
+								else {
+									board[squareY][squareX - 1] = board[squareY][7];
+									board[squareY][7] = 0;
+								}
+							}
 
 							isWhiteTurn = !isWhiteTurn;
 							if (!isWhiteTurn && move == 1) 
@@ -298,7 +342,6 @@ void renderScreen() {
 	SDL_RenderClear(renderer);
 
 	drawBackground();
-	
 
 	//render pieces
 	for (int x = 0; x < WIDTH; x++) {
