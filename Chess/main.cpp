@@ -20,6 +20,28 @@
 #define windowWIDTH  800
 #define windowHEIGHT 600
 
+
+int rookMoves[4][2] = {
+	{1,0},
+	{-1,0},
+	{0,-1},
+	{0,1}
+}; int bishopMoves[4][2] = {
+	{1,1},
+	{-1,1},
+	{1,-1},
+	{-1,-1}
+}; int allMoves[8][2] = {
+	{1,1},
+	{-1,1},
+	{1,-1},
+	{-1,-1},
+	{1,0},
+	{-1,0},
+	{0,-1},
+	{0,1}
+};
+
 bool isRunning = true;
 bool resize = true; 
 int squareSize = windowHEIGHT/HEIGHT;
@@ -29,6 +51,7 @@ int mousePosX, mousePosY;
 bool mouseClick = 0;
 bool isWhiteTurn = 1;
 int pieceHeldX, pieceHeldY;
+int move = 0;
 uint8_t pieceHeld = 0;
 SDL_Texture* texture[12] = { NULL };
 uint8_t board[8][8] = { {0} };
@@ -44,7 +67,8 @@ SDL_Window* window;
 
 #define getPiece(x,y)\
 int piece = log2(board[y][x] & PIECEMASK);\
-int colour = (board[y][x] & COLOURMASK) >> 7;
+bool colour = (board[y][x] & COLOURMASK) >> 7;\
+bool hasMoved = !(board[y][x] & MOVEMASK) >> 6;
 
 void drawSquare(SDL_Colour colour, int x, int y, int w, int h){
 	SDL_SetRenderDrawColor(renderer, colour.r, colour.g, colour.b, colour.a);
@@ -96,7 +120,7 @@ void init() {
 	   "bishopb.bmp",
 	   "rookb.bmp",
 	   "queenb.bmp",
-	   "kingb.bmp",
+	   "kingb.bmp"
 	};
 
 	//load texture
@@ -110,37 +134,125 @@ void init() {
 	SDL_FreeSurface(temp);
 }
 
-std::vector<std::vector<int>> availableMoves(int x, int y) {
-	getPiece(x, y);
+std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, bool isWhite) {
+	std::vector<std::vector<int>> path;
+	for (int i = 0; i < len; i++) {
+		x += dx;
+		y += dy;
+		if (y >= 0 && y < 8 && x >= 0 && x < 8) {
+			if (board[y][x] == 0) {
+				path.push_back({ x,y, 0 });
+			}
+			else {
+				getPiece(x, y);
+				if (isWhite == colour) {
+					path.push_back({ x,y, 1 });
+				}
+				break;
+			}
+		}
+		else break;
+	}
+	return path;
+}
+
+std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
+	int piece = (pieceCheck & PIECEMASK);
+	bool colour = (pieceCheck & COLOURMASK) >> 7;
+	bool hasMoved = !((pieceCheck & MOVEMASK) >> 6);
+
+	std::vector<std::vector<int>> possibleMoves;
 	switch (piece) {
 	case PAWN:
+		//check move captures
+		for (std::vector<int> i : raycast(x, y, 1, (!colour * -1) | 1, 1, !colour))
+			if (i[2] == 1)	possibleMoves.push_back(i);
+		for (std::vector<int> i : raycast(x, y, -1, (!colour * -1) | 1, 1, !colour))
+			if (i[2] == 1)	possibleMoves.push_back(i);
+
+		if (!hasMoved) {
+			//check move forward 2
+			for (std::vector<int> i : raycast(x, y, 0, (!colour * -1) | 1, 2, !colour)) {
+				if (i[2] == 0)	possibleMoves.push_back(i);
+			}
+		}
+		else {
+			//check move forward 1
+			for (std::vector<int> i : raycast(x, y, 0, (!colour * -1) | 1, 1, !colour))
+				if (i[2] == 0)	possibleMoves.push_back(i);
+		}
+		break;
 	case KNIGHT:
+		break;
 	case BISHOP:
+		for (int i = 0; i < 4; i++) {
+			for (std::vector<int> i : raycast(x, y, bishopMoves[i][0], bishopMoves[i][1], 10, !colour))
+				possibleMoves.push_back(i);
+		}
+		break;
 	case ROOK:
+		for (int i = 0; i < 4; i++) {
+			for (std::vector<int> i : raycast(x, y, rookMoves[i][0], rookMoves[i][1], 10, !colour))
+				possibleMoves.push_back(i);
+		}
+		break;
 	case QUEEN:
+		for (int i = 0; i < 8; i++) {
+			for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 10, !colour))
+				possibleMoves.push_back(i);
+		}
+		break;
 	case KING:
+		for (int i = 0; i < 8; i++) {
+			for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 1, !colour))
+				possibleMoves.push_back(i);
+		}
 		break;
 	}
-	return { {0,0} };
+	return possibleMoves;
 }
 
 void update() {
 	if (mouseClick) {
 		int squareX = floor((mousePosX - startingPosx) / squareSize);
 		int squareY = floor((mousePosY - startingPosy) / squareSize);
+		int validMove = 0;
+
 
 		uint8_t player = isWhiteTurn ? COLOURMASK : 0;
 
 		if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
 			int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
+			std::vector<std::vector<int>> available = availableMoves(pieceHeldX, pieceHeldY, pieceHeld);
 
 			//place piece
 			if (board[squareY][squareX] == 0 && pieceHeld != 0) {
-				board[squareY][squareX] = pieceHeld;
-				pieceHeld = 0;
+				if (squareX == pieceHeldX && squareY == pieceHeldY) {
+					board[squareY][squareX] = pieceHeld;
+					pieceHeld = 0;
+				}
+				else {
+					for (std::vector<int> i : available) {
+						if (i[0] == squareX && i[1] == squareY) {
+							board[squareY][squareX] = pieceHeld;
+							pieceHeld = 0;
 
-				if (squareX != pieceHeldX || squareY != pieceHeldY)
-					isWhiteTurn = !isWhiteTurn;
+							isWhiteTurn = !isWhiteTurn;
+							if (!isWhiteTurn && move == 1) 
+								move++;
+							if ((board[squareY][squareX] & MOVEMASK) >> 6 == 1)
+								board[squareY][squareX] -= MOVEMASK;
+						
+							validMove++;
+							break;
+						}
+					}
+					if (validMove == 0) {
+						board[pieceHeldY][pieceHeldX] = pieceHeld;
+						pieceHeld = 0;
+						validMove = 0;
+					}
+				}
 			}
 
 			else if (colour == !isWhiteTurn) {
@@ -158,10 +270,22 @@ void update() {
 			}
 			//capture piece
 			else if (board[squareY][squareX] != 0 && pieceHeld != 0) {
-				board[squareY][squareX] = pieceHeld;
-				pieceHeld = 0;
+				for (std::vector<int> i : available) {
+					if (i[0] == squareX && i[1] == squareY) {
+						board[squareY][squareX] = pieceHeld;
+						pieceHeld = 0;
 
-				isWhiteTurn = !isWhiteTurn;
+						isWhiteTurn = !isWhiteTurn;
+						if (!isWhiteTurn && move == 1) {
+							move++;
+						}
+						validMove++;
+					}
+				}
+				if (validMove == 0) {
+					board[pieceHeldY][pieceHeldX] = pieceHeld;
+					pieceHeld = 0;
+				}
 			}
 		}
 		mouseClick = false;
@@ -175,6 +299,7 @@ void renderScreen() {
 
 	drawBackground();
 	
+
 	//render pieces
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < HEIGHT; y++) {
@@ -189,6 +314,20 @@ void renderScreen() {
 
 				SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
 			}
+		}
+	}
+
+	if (pieceHeld != 0) {
+		std::vector<std::vector<int>> available = availableMoves(pieceHeldX, pieceHeldY, pieceHeld);
+
+		for (std::vector<int> i : available) {
+			SDL_Rect rect;
+			rect.x = startingPosx + i[0] * squareSize + squareSize / 2 - 5;
+			rect.y = startingPosy + i[1] * squareSize + squareSize / 2 - 5;
+			rect.w = 10;
+			rect.h = 10;
+			SDL_SetRenderDrawColor(renderer, 26, 145, 80, 255);
+			SDL_RenderFillRect(renderer, &rect);
 		}
 	}
 
@@ -248,6 +387,7 @@ void handleEvents() {
 void loadBoardFromFen(std::string fen) {
 	int pointerX = 0;
 	int pointerY = 0;
+	int parameterPointer = 0;
 
 	for (char i : fen) {
 		bool isWhite = true;
@@ -294,6 +434,53 @@ void loadBoardFromFen(std::string fen) {
 				}
 				break;
 			}
+		else {
+			switch (i) {
+				if (parameterPointer == 0) {
+					case 'w':
+						isWhiteTurn = true;
+						parameterPointer++;
+						break;
+					case 'b':
+						isWhiteTurn = false;
+						parameterPointer++;
+						break;
+				}
+				else if (parameterPointer < 5) {
+					case 'K':
+						board[7][4] |= MOVEMASK;
+						board[7][7] |= MOVEMASK;
+						parameterPointer++;
+						break;
+					case 'Q':
+						board[7][4] |= MOVEMASK;
+						board[7][0] |= MOVEMASK;
+						parameterPointer++;
+						break;
+					case 'k':
+						board[0][4] |= MOVEMASK;
+						board[0][7] |= MOVEMASK;
+						parameterPointer++;
+						break;
+					case 'q':
+						board[0][4] |= MOVEMASK;
+						board[0][0] |= MOVEMASK;
+						parameterPointer++;
+						break;
+					case '-':
+						parameterPointer += 2;
+						break;
+				}
+				else {
+					default:
+						if (i - 48 > 0 && i - 48 < 9) {
+							move = i - 48;
+						}
+						
+				}
+			}
+		}
+		if (pointerX > 7 && pointerY >= 7) pointerY++;
 	}
 }
 
@@ -310,7 +497,7 @@ int main(int argc, char *argv[]) {
 
 	init();
 
-	loadBoardFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR");
+	loadBoardFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
 	while (isRunning) {
 		handleEvents();
