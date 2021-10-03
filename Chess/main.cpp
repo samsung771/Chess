@@ -50,6 +50,7 @@ int rookMoves[4][2] = {
 	{0,-1},
 	{0,1}
 };
+
 bool isRunning = true;
 bool resize = true; 
 int squareSize = windowHEIGHT/HEIGHT;
@@ -222,22 +223,26 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 		//check for castling
 		if (!hasMoved) {
 			//kingside
-			for (std::vector<int> i : raycast(x, y, 1, 0, 2, !colour)) {
-				int piece = log2(board[y][x+1] & PIECEMASK); 
-				bool Rookcolour = (board[y][x+1] & COLOURMASK) >> 7; 
-				bool RookhasMoved = !(board[y][x+1] & MOVEMASK) >> 6;
+			for (int i = 4; i < 8; i++) {
+				int Rookpiece = board[y][i] & PIECEMASK;
+				bool Rookcolour = (board[y][i] & COLOURMASK) >> 7;
+				bool RookhasMoved = !((board[y][i] & MOVEMASK) >> 6);
 
-				if (piece == 3 && RookhasMoved && Rookcolour == colour);
+				if (Rookpiece == ROOK && !RookhasMoved && Rookcolour == colour)
 					possibleMoves.push_back({ x + 2,y,0 });
+				else if (Rookpiece != 0)
+					break;
 			}
 			//queenside
-			for (std::vector<int> i : raycast(x, y, -1, 0, 3, !colour)) {
-				int piece = log2(board[y][x - 1] & PIECEMASK);
-				bool Rookcolour = (board[y][x - 1] & COLOURMASK) >> 7;
-				bool RookhasMoved = !(board[y][x - 1] & MOVEMASK) >> 6;
+			for (int i = 4; i >= 0; i--) {
+				int Rookpiece = board[y][i] & PIECEMASK;
+				bool Rookcolour = (board[y][i] & COLOURMASK) >> 7;
+				bool RookhasMoved = !((board[y][i] & MOVEMASK) >> 6);
 
-				if (piece == 3 && RookhasMoved && Rookcolour == colour);
-				possibleMoves.push_back({ x - 2,y,0 });
+				if (Rookpiece == ROOK && !RookhasMoved && Rookcolour == colour)
+					possibleMoves.push_back({ x - 2,y,0 });
+				else if (Rookpiece != 0)
+					break;
 			}
 		}
 		break;
@@ -365,10 +370,10 @@ void renderScreen() {
 
 		for (std::vector<int> i : available) {
 			SDL_Rect rect;
-			rect.x = startingPosx + i[0] * squareSize + squareSize / 2 - 5;
-			rect.y = startingPosy + i[1] * squareSize + squareSize / 2 - 5;
-			rect.w = 10;
-			rect.h = 10;
+			rect.x = startingPosx + i[0] * squareSize + squareSize / 2 - squareSize * 0.075;
+			rect.y = startingPosy + i[1] * squareSize + squareSize / 2 - squareSize * 0.075;
+			rect.w = squareSize*0.15;
+			rect.h = squareSize*0.15;
 			SDL_SetRenderDrawColor(renderer, 26, 145, 80, 255);
 			SDL_RenderFillRect(renderer, &rect);
 		}
