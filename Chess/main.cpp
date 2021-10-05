@@ -61,6 +61,8 @@ bool mouseClick = 0;
 bool isWhiteTurn = 1;
 int pieceHeldX, pieceHeldY;
 int move = 0;
+bool bCheck = 0;
+bool wCheck = 0;
 uint8_t pieceHeld = 0;
 SDL_Texture* texture[12] = { NULL };
 uint8_t board[8][8] = { {0} };
@@ -71,6 +73,7 @@ const float pieceScalerW[6] = { 0.95,1,1,1,1,1 };
 const SDL_Colour background{ 83, 94, 93,255 };
 const SDL_Colour darkSquare{ 49, 51, 51,255 };
 const SDL_Colour lightSquare{ 225, 235, 234,255 };
+const SDL_Colour colCheck{ 225, 0, 0,255 };
 
 SDL_Renderer* renderer;
 SDL_Window* window;
@@ -273,6 +276,52 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 	return possibleMoves;
 }
 
+std::vector<std::vector<int>> getAllMoves(bool colourToCheck) {
+	std::vector<std::vector<int>> moves;
+	for (int x = 0; x < WIDTH; x++) {
+		for (int y = 0; y < HEIGHT; y++) {
+			if ((board[y][x] & PIECEMASK) != 0) {
+				getPiece(x, y);
+				if (piece != 0) {
+					if (colour == colourToCheck) {
+						for (std::vector<int> i : availableMoves(x, y, board[y][x])) {
+							for (std::vector<int> j : moves) {
+								if (j.size() > 1) {
+									if (j[0] != i[0] || j[1] != i[1]) {
+										moves.push_back(i);
+									}
+								}
+							}
+							if (moves.size() == 0)
+								moves.push_back(i);
+						}
+					}
+				}
+			}
+		}
+	}
+	return moves;
+}
+
+void checkCheck(bool oppColour) {
+	int checks = 0;
+	for (std::vector<int> i : getAllMoves(oppColour)) {
+		if ((board[i[1]][i[0]] & PIECEMASK) == KING) {
+			if (oppColour)
+				bCheck = 1;
+			else
+				wCheck = 1;
+			checks++;
+		}
+	}
+	if (checks == 0) {
+		if (oppColour)
+			bCheck = 0;
+		else
+			wCheck = 0;
+	}
+}
+
 void update() {
 	if (mouseClick) {
 		int squareX = floor((mousePosX - startingPosx) / squareSize);
@@ -349,6 +398,7 @@ void update() {
 						pieceHeld = 0;
 						validMove = 0;
 					}
+					checkCheck(((board[squareY][squareX] & COLOURMASK) >> 7));
 				}
 			}
 
@@ -394,6 +444,7 @@ void update() {
 					board[pieceHeldY][pieceHeldX] = pieceHeld;
 					pieceHeld = 0;
 				}
+				checkCheck(((board[squareY][squareX] & COLOURMASK) >> 7));
 			}
 		}
 		mouseClick = false;
@@ -412,6 +463,16 @@ void renderScreen() {
 		for (int y = 0; y < HEIGHT; y++) {
 			if ((board[y][x] & PIECEMASK) != 0) {
 				getPiece(x, y);
+
+				if (piece == 6) {
+
+					if ((colour && bCheck) || (!colour && wCheck))
+						drawSquare(colCheck,
+							x * squareSize + startingPosx,
+							y * squareSize + startingPosy,
+							squareSize, squareSize);
+											
+				}
 
 				SDL_Rect pos;
 				pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
