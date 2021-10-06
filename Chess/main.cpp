@@ -321,20 +321,20 @@ void update() {
 		int squareY = floor((mousePosY - startingPosy) / squareSize);
 		int validMove = 0;
 
-
-		uint8_t player = isWhiteTurn ? COLOURMASK : 0;
-
 		if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
 			int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
+			//checks available moves
 			std::vector<std::vector<int>> available = availableMoves(pieceHeldX, pieceHeldY, pieceHeld);
 
 			//place piece
 			if (board[squareY][squareX] == 0 && pieceHeld != 0) {
+				//if it is placing it in the same place
 				if (squareX == pieceHeldX && squareY == pieceHeldY) {
 					board[squareY][squareX] = pieceHeld;
 					pieceHeld = 0;
 				}
 				else {
+					//check if the move is allowed
 					for (std::vector<int> i : available) {
 						if (i[0] == squareX && i[1] == squareY) {
 							board[squareY][squareX] = pieceHeld;
@@ -376,9 +376,14 @@ void update() {
 									board[squareY - 1][squareX] = 0;
 							}
 
+							//swap turn
 							isWhiteTurn = !isWhiteTurn;
+
+							//increase move
 							if (!isWhiteTurn && move == 1)
 								move++;
+
+							//stores that piece has moved
 							if ((board[squareY][squareX] & MOVEMASK) >> 6 == 1)
 								board[squareY][squareX] -= MOVEMASK;
 
@@ -386,6 +391,7 @@ void update() {
 							break;
 						}
 					}
+					//if move is not valid replace piece
 					if (validMove == 0) {
 						board[pieceHeldY][pieceHeldX] = pieceHeld;
 						pieceHeld = 0;
@@ -459,6 +465,7 @@ void renderScreen() {
 			if ((board[y][x] & PIECEMASK) != 0) {
 				getPiece(x, y);
 
+				//make the king red if its in check
 				if (piece == 5) {
 					if ((!colour && bCheck) || (colour && wCheck))
 						drawSquare(colCheck,
@@ -479,6 +486,7 @@ void renderScreen() {
 		}
 	}
 
+	//render possible positions for the held piece
 	if (pieceHeld != 0) {
 		std::vector<std::vector<int>> available = availableMoves(pieceHeldX, pieceHeldY, pieceHeld);
 
@@ -551,14 +559,19 @@ void loadBoardFromFen(std::string fen) {
 	int pointerY = 0;
 	int parameterPointer = 0;
 
+	//for each thing in the fen
 	for (char i : fen) {
 		bool isWhite = true;
+
+		//checks the colour
 		if (i != toupper(i)) {
 			isWhite = false;
 			board[pointerY][pointerX] |= COLOURMASK;
 		}
 
+		//while it is looking through the board
 		if (pointerY < 8)
+			//switch for each piece
 			switch (tolower(i)) {
 			case 'r':
 				board[pointerY][pointerX] |= ROOK;
@@ -586,17 +599,21 @@ void loadBoardFromFen(std::string fen) {
 				board[pointerY][pointerX] |= QUEEN;
 				pointerX++;
 				break;
+			//new line
 			case '/':
 				pointerY++;
 				pointerX = 0;
 				break;
+			//skip open squares
 			default:
 				if (i - 48 > 0 && i - 48 < 9) {
 					pointerX += i - 48;
 				}
 				break;
 			}
+		//parameters
 		else {
+			//colour of the piece
 			switch (i) {
 				if (parameterPointer == 0) {
 			case 'w':
@@ -610,6 +627,7 @@ void loadBoardFromFen(std::string fen) {
 				}
 			}
 
+			//checks for castling
 			if (parameterPointer >= 1 && parameterPointer < 5) {
 				if (i == 'K') {
 					if (parameterPointer == 2)
@@ -640,15 +658,13 @@ void loadBoardFromFen(std::string fen) {
 				}
 			}
 
-			else {
-
-			}
 		}
 		if (pointerX > 7 && pointerY >= 7) pointerY++;
 	}
 }
 
 int main(int argc, char* argv[]) {
+	//init SDL and open window
 	SDL_Init(SDL_INIT_EVERYTHING);
 	window = SDL_CreateWindow("Chess",
 		SDL_WINDOWPOS_CENTERED,
@@ -661,8 +677,10 @@ int main(int argc, char* argv[]) {
 
 	init();
 
+	//load from fen of standard starting positions
 	loadBoardFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
+	//main game loop
 	while (isRunning) {
 		handleEvents();
 		renderScreen();
