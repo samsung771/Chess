@@ -282,19 +282,10 @@ std::vector<std::vector<int>> getAllMoves(bool colourToCheck) {
 		for (int y = 0; y < HEIGHT; y++) {
 			if ((board[y][x] & PIECEMASK) != 0) {
 				getPiece(x, y);
-				if (piece != 0) {
-					if (colour == colourToCheck) {
-						for (std::vector<int> i : availableMoves(x, y, board[y][x])) {
-							for (std::vector<int> j : moves) {
-								if (j.size() > 1) {
-									if (j[0] != i[0] || j[1] != i[1]) {
-										moves.push_back(i);
-									}
-								}
-							}
-							if (moves.size() == 0)
-								moves.push_back(i);
-						}
+				if (colour == colourToCheck) {
+					for (std::vector<int> i : availableMoves(x, y, board[y][x])) {
+						std::vector<int> temp = { x,y,i[0],i[1] };
+						moves.push_back(temp);		
 					}
 				}
 			}
@@ -304,22 +295,24 @@ std::vector<std::vector<int>> getAllMoves(bool colourToCheck) {
 }
 
 void checkCheck(bool oppColour) {
-	int checks = 0;
+	int wchecks = 0;
+	int bchecks = 0;
 	for (std::vector<int> i : getAllMoves(oppColour)) {
-		if ((board[i[1]][i[0]] & PIECEMASK) == KING) {
-			if (oppColour)
+		if ((board[i[3]][i[2]] & PIECEMASK) == KING) {
+			if (oppColour) {
 				bCheck = 1;
-			else
+				bchecks++;
+			}
+			else {
 				wCheck = 1;
-			checks++;
+				wchecks++;
+			}
 		}
 	}
-	if (checks == 0) {
-		if (oppColour)
-			bCheck = 0;
-		else
-			wCheck = 0;
-	}
+	if (oppColour && bchecks == 0)
+		bCheck = 0;
+	else if (!oppColour && wchecks == 0)
+		wCheck = 0;
 }
 
 void update() {
@@ -398,7 +391,8 @@ void update() {
 						pieceHeld = 0;
 						validMove = 0;
 					}
-					checkCheck(((board[squareY][squareX] & COLOURMASK) >> 7));
+					checkCheck(1);
+					checkCheck(0);
 				}
 			}
 
@@ -444,7 +438,8 @@ void update() {
 					board[pieceHeldY][pieceHeldX] = pieceHeld;
 					pieceHeld = 0;
 				}
-				checkCheck(((board[squareY][squareX] & COLOURMASK) >> 7));
+				checkCheck(1);
+				checkCheck(0);
 			}
 		}
 		mouseClick = false;
@@ -464,9 +459,8 @@ void renderScreen() {
 			if ((board[y][x] & PIECEMASK) != 0) {
 				getPiece(x, y);
 
-				if (piece == 6) {
-
-					if ((colour && bCheck) || (!colour && wCheck))
+				if (piece == 5) {
+					if ((!colour && bCheck) || (colour && wCheck))
 						drawSquare(colCheck,
 							x * squareSize + startingPosx,
 							y * squareSize + startingPosy,
@@ -479,7 +473,7 @@ void renderScreen() {
 				pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
 				pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
 				pos.h = squareSize * pieceScale[piece];
-
+				
 				SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
 			}
 		}
