@@ -83,6 +83,14 @@ int piece = log2(board[y][x] & PIECEMASK);\
 bool colour = (board[y][x] & COLOURMASK) >> 7;\
 bool hasMoved = !(board[y][x] & MOVEMASK) >> 6;
 
+
+std::vector<bool> checkCheck(bool oppColour, uint8_t board[8][8]);
+std::vector<std::vector<int>> getAllMoves(bool colourToCheck);
+std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck);
+std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, bool isWhite);
+
+
+
 void drawSquare(SDL_Colour colour, int x, int y, int w, int h) {
 	SDL_SetRenderDrawColor(renderer, colour.r, colour.g, colour.b, colour.a);
 
@@ -273,7 +281,28 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 		}
 		break;
 	}
+
+	
 	return possibleMoves;
+}
+
+std::vector<std::vector<int>> legalMoves(int x, int y, uint8_t pieceCheck) {
+	std::vector<std::vector<int>> legalMoves;
+	std::vector<std::vector<int>> possibleMoves = availableMoves(x,y,pieceCheck);
+
+	for (std::vector<int> i : possibleMoves) {
+		//copies board and makes the move on the new board
+		uint8_t newBoard[8][8];
+		memcpy(newBoard, board, sizeof(board));
+		newBoard[i[1]][i[0]] = pieceHeld;
+
+		//check if move will put the king in check
+		if (!(checkCheck(isWhiteTurn, newBoard)[!isWhiteTurn])) {
+			legalMoves.push_back(i);
+		}
+	}
+
+	return legalMoves;
 }
 
 std::vector<std::vector<int>> getAllMoves(bool colourToCheck) {
@@ -294,25 +323,33 @@ std::vector<std::vector<int>> getAllMoves(bool colourToCheck) {
 	return moves;
 }
 
-void checkCheck(bool oppColour) {
+std::vector<bool> checkCheck(bool oppColour, uint8_t board[8][8]) {
 	int wchecks = 0;
 	int bchecks = 0;
 	for (std::vector<int> i : getAllMoves(oppColour)) {
 		if ((board[i[3]][i[2]] & PIECEMASK) == KING) {
 			if (oppColour) {
-				bCheck = 1;
 				bchecks++;
 			}
 			else {
-				wCheck = 1;
 				wchecks++;
 			}
 		}
 	}
-	if (oppColour && bchecks == 0)
-		bCheck = 0;
-	else if (!oppColour && wchecks == 0)
-		wCheck = 0;
+	for (std::vector<int> i : getAllMoves(!oppColour)) {
+		if ((board[i[3]][i[2]] & PIECEMASK) == KING) {
+			if (!oppColour) {
+				bchecks++;
+			}
+			else {
+				wchecks++;
+			}
+		}
+	}
+	if (bchecks > 0) bchecks = 1;
+	if (wchecks > 0) wchecks = 1;
+
+	return {(bool)bchecks, (bool)wchecks};
 }
 
 void update() {
@@ -324,7 +361,7 @@ void update() {
 		if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
 			int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
 			//checks available moves
-			std::vector<std::vector<int>> available = availableMoves(pieceHeldX, pieceHeldY, pieceHeld);
+			std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld);
 
 			//place piece
 			if (board[squareY][squareX] == 0 && pieceHeld != 0) {
@@ -354,7 +391,7 @@ void update() {
 
 							//adds enPassent squares
 							if ((board[squareY][squareX] & PIECEMASK) == PAWN) {
-								if (squareY - pieceHeldY == 2) 
+								if (squareY - pieceHeldY == 2)
 									enPassent[squareX + 8] = squareY - 1;
 								else if (squareY - pieceHeldY == -2)
 									enPassent[squareX] = squareY + 1;
@@ -388,6 +425,7 @@ void update() {
 								board[squareY][squareX] -= MOVEMASK;
 
 							validMove++;
+
 							break;
 						}
 					}
@@ -397,8 +435,9 @@ void update() {
 						pieceHeld = 0;
 						validMove = 0;
 					}
-					checkCheck(1);
-					checkCheck(0);
+					std::vector<bool> temp = checkCheck(isWhiteTurn, board);
+					bCheck = temp[0];
+					wCheck = temp[1];
 				}
 			}
 
@@ -444,8 +483,9 @@ void update() {
 					board[pieceHeldY][pieceHeldX] = pieceHeld;
 					pieceHeld = 0;
 				}
-				checkCheck(1);
-				checkCheck(0);
+				std::vector<bool> temp = checkCheck(isWhiteTurn, board);
+				bCheck = temp[0];
+				wCheck = temp[1];
 			}
 		}
 	}
@@ -488,7 +528,7 @@ void renderScreen() {
 
 	//render possible positions for the held piece
 	if (pieceHeld != 0) {
-		std::vector<std::vector<int>> available = availableMoves(pieceHeldX, pieceHeldY, pieceHeld);
+		std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld);
 
 		for (std::vector<int> i : available) {
 			SDL_Rect rect;
