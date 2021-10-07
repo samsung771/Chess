@@ -84,7 +84,7 @@ bool colour = (board[y][x] & COLOURMASK) >> 7;\
 bool hasMoved = !(board[y][x] & MOVEMASK) >> 6;
 
 
-std::vector<bool> checkCheck(bool oppColour, uint8_t board[8][8]);
+std::vector<bool> checkCheck(uint8_t board[8][8]);
 std::vector<std::vector<int>> getAllMoves(bool colourToCheck);
 std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck);
 std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, bool isWhite);
@@ -254,8 +254,16 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 			for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 1, !colour))
 				possibleMoves.push_back(i);
 		}
+		bool inCheck = 0;
+
+		if (colour) 
+			inCheck = wCheck;
+		else 
+			inCheck = bCheck;
+		
+
 		//check for castling
-		if (!hasMoved) {
+		if (!hasMoved && !inCheck) {
 			//kingside
 			for (int i = 4; i < 8; i++) {
 				int Rookpiece = board[y][i] & PIECEMASK;
@@ -294,10 +302,10 @@ std::vector<std::vector<int>> legalMoves(int x, int y, uint8_t pieceCheck) {
 		//copies board and makes the move on the new board
 		uint8_t newBoard[8][8];
 		memcpy(newBoard, board, sizeof(board));
-		newBoard[i[1]][i[0]] = pieceHeld;
+		newBoard[i[1]][i[0]] = pieceCheck;
 
 		//check if move will put the king in check
-		if (!(checkCheck(isWhiteTurn, newBoard)[!isWhiteTurn])) {
+		if (!(checkCheck(newBoard)[!isWhiteTurn])) {
 			legalMoves.push_back(i);
 		}
 	}
@@ -323,28 +331,17 @@ std::vector<std::vector<int>> getAllMoves(bool colourToCheck) {
 	return moves;
 }
 
-std::vector<bool> checkCheck(bool oppColour, uint8_t board[8][8]) {
+std::vector<bool> checkCheck(uint8_t board[8][8]) {
 	int wchecks = 0;
 	int bchecks = 0;
-	for (std::vector<int> i : getAllMoves(oppColour)) {
-		if ((board[i[3]][i[2]] & PIECEMASK) == KING) {
-			if (oppColour) {
-				bchecks++;
-			}
-			else {
-				wchecks++;
-			}
-		}
+	for (std::vector<int> i : getAllMoves(1)) {
+		if ((board[i[3]][i[2]] & PIECEMASK) == KING)
+			bchecks++;
 	}
-	for (std::vector<int> i : getAllMoves(!oppColour)) {
-		if ((board[i[3]][i[2]] & PIECEMASK) == KING) {
-			if (!oppColour) {
-				bchecks++;
-			}
-			else {
-				wchecks++;
-			}
-		}
+	for (std::vector<int> i : getAllMoves(0)) {
+		if ((board[i[3]][i[2]] & PIECEMASK) == KING) 
+			wchecks++;
+		
 	}
 	if (bchecks > 0) bchecks = 1;
 	if (wchecks > 0) wchecks = 1;
@@ -435,7 +432,7 @@ void update() {
 						pieceHeld = 0;
 						validMove = 0;
 					}
-					std::vector<bool> temp = checkCheck(isWhiteTurn, board);
+					std::vector<bool> temp = checkCheck(board);
 					bCheck = temp[0];
 					wCheck = temp[1];
 				}
@@ -483,7 +480,7 @@ void update() {
 					board[pieceHeldY][pieceHeldX] = pieceHeld;
 					pieceHeld = 0;
 				}
-				std::vector<bool> temp = checkCheck(isWhiteTurn, board);
+				std::vector<bool> temp = checkCheck(board);
 				bCheck = temp[0];
 				wCheck = temp[1];
 			}
