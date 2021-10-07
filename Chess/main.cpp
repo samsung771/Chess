@@ -485,7 +485,6 @@ void update() {
 				wCheck = temp[1];
 			}
 		}
-		mouseClick = false;
 	}
 }
 
@@ -511,6 +510,7 @@ void renderScreen() {
 							squareSize, squareSize);
 											
 				}
+
 
 				SDL_Rect pos;
 				pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
@@ -558,6 +558,7 @@ void renderScreen() {
 void handleEvents() {
 	SDL_Event event;
 	SDL_PollEvent(&event);
+	mouseClick = false;
 
 	switch (event.type)
 	{
