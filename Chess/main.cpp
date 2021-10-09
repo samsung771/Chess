@@ -601,21 +601,26 @@ private:
 	}
 
 public:
+	//public game variables
 	uint8_t board[8][8] = { {0} };
 	bool isWhiteTurn = 1;
 	int move = 0;
 
+	//returns all legal moves for piece
 	std::vector<std::vector<int>> legalMoves(int x, int y, uint8_t pieceCheck) {
 		std::vector<std::vector<int>> legalMoves;
 
+		//get all available moves
 		for (std::vector<int> i : availableMoves(x, y, pieceCheck, board)) {
-			//copies board and makes the move on the new board
+			//copies board
 			uint8_t newBoard[8][8];
 			memcpy(newBoard, board, sizeof(board));
+			//makes the possible move on the new copied board
 			newBoard[i[1]][i[0]] = pieceCheck;
 
 			//check if move will put the king in check
 			if (!(checkCheck(newBoard)[!isWhiteTurn])) {
+				//if not add it as a legal move
 				legalMoves.push_back(i);
 			}
 		}
@@ -623,13 +628,19 @@ public:
 		return legalMoves;
 	}
 
+	//gets all possible moves for a colour
 	std::vector<std::vector<int>> getAllMoves(bool colourToCheck, uint8_t board[8][8]) {
 		std::vector<std::vector<int>> moves;
+
+		//goes through each piece in the board
 		for (int x = 0; x < WIDTH; x++) {
 			for (int y = 0; y < HEIGHT; y++) {
+				//if there is a piece there
 				if ((board[y][x] & PIECEMASK) != 0) {
+					//if it is the colour that is getting checked
 					bool colour = (board[y][x] & COLOURMASK) >> 7;
 					if (colour == colourToCheck) {
+						//add available moves for that piece
 						for (std::vector<int> i : availableMoves(x, y, board[y][x], board)) {
 							std::vector<int> temp = { x,y,i[0],i[1] };
 							moves.push_back(temp);
@@ -641,21 +652,28 @@ public:
 		return moves;
 	}
 
+	//returns if each king is in check
 	std::vector<bool> checkCheck(uint8_t board[8][8]) {
 		int wchecks = 0;
 		int bchecks = 0;
+		//looks through all possible moves for white
 		for (std::vector<int> i : getAllMoves(1, board)) {
+			//if a piece can capture the king then add a check
 			if ((board[i[3]][i[2]] & PIECEMASK) == KING)
 				bchecks++;
 		}
+		//do the same for black
 		for (std::vector<int> i : getAllMoves(0, board)) {
 			if ((board[i[3]][i[2]] & PIECEMASK) == KING)
 				wchecks++;
 
 		}
+
+		//make the ints bools
 		if (bchecks > 0) bchecks = 1;
 		if (wchecks > 0) wchecks = 1;
 
+		//return checks
 		return { (bool)bchecks, (bool)wchecks };
 	}
 
