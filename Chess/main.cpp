@@ -85,9 +85,9 @@ bool hasMoved = !(board[y][x] & MOVEMASK) >> 6;
 
 
 std::vector<bool> checkCheck(uint8_t board[8][8]);
-std::vector<std::vector<int>> getAllMoves(bool colourToCheck);
-std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck);
-std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, bool isWhite);
+std::vector<std::vector<int>> getAllMoves(bool colourToCheck, uint8_t board[8][8]);
+std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck, uint8_t board[8][8]);
+std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, bool isWhite, uint8_t board[8][8]);
 
 
 
@@ -155,7 +155,7 @@ void init() {
 	SDL_FreeSurface(temp);
 }
 
-std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, bool isWhite) {
+std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, bool isWhite, uint8_t board[8][8]) {
 	std::vector<std::vector<int>> path;
 	for (int i = 0; i < len; i++) {
 		x += dx;
@@ -177,7 +177,7 @@ std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, boo
 	return path;
 }
 
-std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
+std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck, uint8_t board[8][8]) {
 	int piece = (pieceCheck & PIECEMASK);
 	bool colour = (pieceCheck & COLOURMASK) >> 7;
 	bool hasMoved = !((pieceCheck & MOVEMASK) >> 6);
@@ -186,20 +186,20 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 	switch (piece) {
 	case PAWN:
 		//check move captures
-		for (std::vector<int> i : raycast(x, y, 1, (!colour * -1) | 1, 1, !colour))
+		for (std::vector<int> i : raycast(x, y, 1, (!colour * -1) | 1, 1, !colour, board))
 			if (i[2] == 1)	possibleMoves.push_back(i);
-		for (std::vector<int> i : raycast(x, y, -1, (!colour * -1) | 1, 1, !colour))
+		for (std::vector<int> i : raycast(x, y, -1, (!colour * -1) | 1, 1, !colour, board))
 			if (i[2] == 1)	possibleMoves.push_back(i);
 
 		if (!hasMoved) {
 			//check move forward 2
-			for (std::vector<int> i : raycast(x, y, 0, (!colour * -1) | 1, 2, !colour)) {
+			for (std::vector<int> i : raycast(x, y, 0, (!colour * -1) | 1, 2, !colour, board)) {
 				if (i[2] == 0)	possibleMoves.push_back(i);
 			}
 		}
 		else {
 			//check move forward 1
-			for (std::vector<int> i : raycast(x, y, 0, (!colour * -1) | 1, 1, !colour))
+			for (std::vector<int> i : raycast(x, y, 0, (!colour * -1) | 1, 1, !colour, board))
 				if (i[2] == 0)	possibleMoves.push_back(i);
 		}
 
@@ -209,7 +209,7 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 		else add = 8;
 
 		if (enPassent[x + 1 + add] == y + ((!colour * -1) | 1)) {
-			for (std::vector<int> i : raycast(x, y, 1, (!colour * -1) | 1, 1, !colour)) {
+			for (std::vector<int> i : raycast(x, y, 1, (!colour * -1) | 1, 1, !colour, board)) {
 				if (i[2] == 0) {
 					i[2] = 2;
 					possibleMoves.push_back(i);
@@ -217,7 +217,7 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 			}
 		}
 		if (enPassent[x - 1 + add] == y + ((!colour * -1) | 1)) {
-			for (std::vector<int> i : raycast(x, y, -1, (!colour * -1) | 1, 1, !colour)) {
+			for (std::vector<int> i : raycast(x, y, -1, (!colour * -1) | 1, 1, !colour, board)) {
 				if (i[2] == 0) {
 					i[2] = 2;
 					possibleMoves.push_back(i);
@@ -227,31 +227,31 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 		break;
 	case KNIGHT:
 		for (int i = 0; i < 8; i++) {
-			for (std::vector<int> i : raycast(x, y, knightMoves[i][0], knightMoves[i][1], 1, !colour))
+			for (std::vector<int> i : raycast(x, y, knightMoves[i][0], knightMoves[i][1], 1, !colour, board))
 				possibleMoves.push_back(i);
 		}
 		break;
 	case BISHOP:
 		for (int i = 0; i < 4; i++) {
-			for (std::vector<int> i : raycast(x, y, bishopMoves[i][0], bishopMoves[i][1], 10, !colour))
+			for (std::vector<int> i : raycast(x, y, bishopMoves[i][0], bishopMoves[i][1], 10, !colour, board))
 				possibleMoves.push_back(i);
 		}
 		break;
 	case ROOK:
 		for (int i = 0; i < 4; i++) {
-			for (std::vector<int> i : raycast(x, y, rookMoves[i][0], rookMoves[i][1], 10, !colour))
+			for (std::vector<int> i : raycast(x, y, rookMoves[i][0], rookMoves[i][1], 10, !colour, board))
 				possibleMoves.push_back(i);
 		}
 		break;
 	case QUEEN:
 		for (int i = 0; i < 8; i++) {
-			for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 10, !colour))
+			for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 10, !colour, board))
 				possibleMoves.push_back(i);
 		}
 		break;
 	case KING:
 		for (int i = 0; i < 8; i++) {
-			for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 1, !colour))
+			for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 1, !colour, board))
 				possibleMoves.push_back(i);
 		}
 		bool inCheck = 0;
@@ -296,9 +296,8 @@ std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck) {
 
 std::vector<std::vector<int>> legalMoves(int x, int y, uint8_t pieceCheck) {
 	std::vector<std::vector<int>> legalMoves;
-	std::vector<std::vector<int>> possibleMoves = availableMoves(x,y,pieceCheck);
 
-	for (std::vector<int> i : possibleMoves) {
+	for (std::vector<int> i : availableMoves(x, y, pieceCheck, board)) {
 		//copies board and makes the move on the new board
 		uint8_t newBoard[8][8];
 		memcpy(newBoard, board, sizeof(board));
@@ -309,18 +308,18 @@ std::vector<std::vector<int>> legalMoves(int x, int y, uint8_t pieceCheck) {
 			legalMoves.push_back(i);
 		}
 	}
-
+	
 	return legalMoves;
 }
 
-std::vector<std::vector<int>> getAllMoves(bool colourToCheck) {
+std::vector<std::vector<int>> getAllMoves(bool colourToCheck, uint8_t board[8][8]) {
 	std::vector<std::vector<int>> moves;
 	for (int x = 0; x < WIDTH; x++) {
 		for (int y = 0; y < HEIGHT; y++) {
 			if ((board[y][x] & PIECEMASK) != 0) {
-				getPiece(x, y);
+				bool colour = (board[y][x] & COLOURMASK) >> 7;
 				if (colour == colourToCheck) {
-					for (std::vector<int> i : availableMoves(x, y, board[y][x])) {
+					for (std::vector<int> i : availableMoves(x, y, board[y][x], board)) {
 						std::vector<int> temp = { x,y,i[0],i[1] };
 						moves.push_back(temp);		
 					}
@@ -334,11 +333,11 @@ std::vector<std::vector<int>> getAllMoves(bool colourToCheck) {
 std::vector<bool> checkCheck(uint8_t board[8][8]) {
 	int wchecks = 0;
 	int bchecks = 0;
-	for (std::vector<int> i : getAllMoves(1)) {
+	for (std::vector<int> i : getAllMoves(1, board)) {
 		if ((board[i[3]][i[2]] & PIECEMASK) == KING)
 			bchecks++;
 	}
-	for (std::vector<int> i : getAllMoves(0)) {
+	for (std::vector<int> i : getAllMoves(0, board)) {
 		if ((board[i[3]][i[2]] & PIECEMASK) == KING) 
 			wchecks++;
 		
