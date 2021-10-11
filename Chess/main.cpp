@@ -325,6 +325,30 @@ private:
 		return possibleMoves;
 	}
 
+	//gets all possible moves for a colour
+	std::vector<std::vector<int>> getAllMoves(bool colourToCheck, uint8_t board[8][8]) {
+		std::vector<std::vector<int>> moves;
+
+		//goes through each piece in the board
+		for (int x = 0; x < WIDTH; x++) {
+			for (int y = 0; y < HEIGHT; y++) {
+				//if there is a piece there
+				if ((board[y][x] & PIECEMASK) != 0) {
+					//if it is the colour that is getting checked
+					bool colour = (board[y][x] & COLOURMASK) >> 7;
+					if (colour == colourToCheck) {
+						//add available moves for that piece
+						for (std::vector<int> i : availableMoves(x, y, board[y][x], board)) {
+							std::vector<int> temp = { x,y,i[0],i[1] };
+							moves.push_back(temp);
+						}
+					}
+				}
+			}
+		}
+		return moves;
+	}
+
 	//update board
 	void update() {
 		if (mouseClick) {
@@ -416,6 +440,10 @@ private:
 						std::vector<bool> temp = checkCheck(board);
 						bCheck = temp[0];
 						wCheck = temp[1];
+
+						//checks for game ending states
+						if (getAllLegalMoves(!isWhiteTurn, board).size() == 0)
+							isRunning = false;
 					}
 				}
 
@@ -476,6 +504,10 @@ private:
 					std::vector<bool> temp = checkCheck(board);
 					bCheck = temp[0];
 					wCheck = temp[1];
+
+					//checks for game ending states
+					if (getAllLegalMoves(!isWhiteTurn, board).size() == 0)
+						isRunning = false;
 				}
 			}
 		}
@@ -629,7 +661,7 @@ public:
 	}
 
 	//gets all possible moves for a colour
-	std::vector<std::vector<int>> getAllMoves(bool colourToCheck, uint8_t board[8][8]) {
+	std::vector<std::vector<int>> getAllLegalMoves(bool colourToCheck, uint8_t board[8][8]) {
 		std::vector<std::vector<int>> moves;
 
 		//goes through each piece in the board
@@ -641,7 +673,7 @@ public:
 					bool colour = (board[y][x] & COLOURMASK) >> 7;
 					if (colour == colourToCheck) {
 						//add available moves for that piece
-						for (std::vector<int> i : availableMoves(x, y, board[y][x], board)) {
+						for (std::vector<int> i : legalMoves(x, y, board[y][x])) {
 							std::vector<int> temp = { x,y,i[0],i[1] };
 							moves.push_back(temp);
 						}
