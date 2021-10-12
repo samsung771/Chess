@@ -21,43 +21,51 @@
 #define windowWIDTH  800
 #define windowHEIGHT 600
 
+//macro to get the piece from its binary representation
+#define getPiece(x,y)\
+int piece = log2(board[y][x] & PIECEMASK);\
+bool colour = (board[y][x] & COLOURMASK) >> 7;\
+bool hasMoved = !(board[y][x] & MOVEMASK) >> 6;
 
 
-class ChessGame {
-private:
-	//vector movements for each piece type
-	int rookMoves[4][2] = {
-		{1,0},
-		{-1,0},
-		{0,-1},
-		{0,1}
-	}; int bishopMoves[4][2] = {
-		{1,1},
-		{-1,1},
-		{1,-1},
-		{-1,-1}
-	}; int knightMoves[8][2] = {
-		{2,1},
-		{2,-1},
-		{1,2},
-		{-1,2},
-		{-2,1},
-		{-2,-1},
-		{1,-2},
-		{-1,-2}
-	}; int allMoves[8][2] = {
-		{1,1},
-		{-1,1},
-		{1,-1},
-		{-1,-1},
-		{1,0},
-		{-1,0},
-		{0,-1},
-		{0,1}
-	};
-	
-	bool isRunning = true;
 
+class Player {
+public :
+	bool check = false;
+	bool checkMate = false;
+
+	//MoveManager* moveManager;
+	//ChessGame* chessGame;
+
+	Player() {
+
+	}
+};
+
+
+
+class Human : public Player {
+public:
+	//mouse variables
+	int* mousePosX;
+	int* mousePosY;
+	bool* mouseClick;
+
+	//original pos of piece
+	int pieceHeldX, pieceHeldY = 0;
+	//piece representation
+	uint8_t pieceHeld = 0;
+
+	Human(int* mouseX, int* mouseY, bool* mouseCl) {
+		mousePosX = mouseX;
+		mousePosY = mouseY;
+		mouseClick = mouseCl;
+	}
+};
+
+
+
+class Renderer {
 	//rendering variables
 	SDL_Texture* texture[12] = { NULL };
 	const SDL_Colour background{ 83, 94, 93, 255 };
@@ -66,36 +74,16 @@ private:
 	const SDL_Colour colCheck{ 225, 0, 0, 255 };
 
 	//rendering size variables
-	bool resize = true;
 	int squareSize = windowHEIGHT / HEIGHT;
 	int startingPosx, startingPosy = 0;
 	int w, h;
 	const float pieceScale[6] = { 0.7,0.8,0.8,0.8,0.8,0.8 };
 	const float pieceScalerW[6] = { 0.95,1,1,1,1,1 };
-
-	//mouse variables
-	int mousePosX, mousePosY;
-	bool mouseClick = 0;
-
-	//original pos of piece
-	int pieceHeldX, pieceHeldY;
-	//piece representation
-	uint8_t pieceHeld = 0;
-
-	//game variables
-	bool bCheck = 0;
-	bool wCheck = 0;
-	uint8_t enPassent[16] = { 0 };
-
 	//SDL variables
 	SDL_Renderer* renderer;
 	SDL_Window* window;
 
-	//macro to get the piece from its binary representation
-	#define getPiece(x,y)\
-	int piece = log2(board[y][x] & PIECEMASK);\
-	bool colour = (board[y][x] & COLOURMASK) >> 7;\
-	bool hasMoved = !(board[y][x] & MOVEMASK) >> 6;
+
 
 	//draws squares
 	void drawSquare(SDL_Colour colour, int x, int y, int w, int h) {
@@ -134,9 +122,22 @@ private:
 			}
 		}
 	}
+public: 
+	bool resize = true;
 
 	//load textures and initialise some variables
 	void init() {
+		//init SDL and open window
+		SDL_Init(SDL_INIT_EVERYTHING);
+		window = SDL_CreateWindow("Chess",
+			SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED,
+			windowWIDTH,
+			windowHEIGHT,
+			SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+
+		renderer = SDL_CreateRenderer(window, -1, 0);
+
 		SDL_Surface* temp = NULL;
 
 		//files for bmp
@@ -165,6 +166,121 @@ private:
 		//delete temporary files
 		SDL_FreeSurface(temp);
 	}
+
+	//clears frame and renders a new one
+	void renderScreen(uint8_t board[8][8]) {
+		//wipe screen to background colour
+		SDL_SetRenderDrawColor(renderer, background.r, background.g, background.b, background.a);
+		SDL_RenderClear(renderer);
+
+		//draw the board
+		drawBackground();
+
+		//render pieces
+		for (int x = 0; x < WIDTH; x++) {
+			for (int y = 0; y < HEIGHT; y++) {
+				if ((board[y][x] & PIECEMASK) != 0) {
+					getPiece(x, y);
+
+					/*
+					//make the king's square red if its in check
+					if (piece == 5) {
+						if ((!colour && bCheck) || (colour && wCheck))
+							drawSquare(colCheck,
+								x * squareSize + startingPosx,
+								y * squareSize + startingPosy,
+								squareSize, squareSize);
+
+					}
+					*/
+
+
+					//render piece
+					SDL_Rect pos;
+					pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
+					pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
+					pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
+					pos.h = squareSize * pieceScale[piece];
+
+					SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
+				}
+			}
+		}
+
+		/*
+		//render possible positions for the held piece
+		if (pieceHeld != 0) {
+			std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld);
+
+			for (std::vector<int> i : available) {
+				//draw green rectangle
+				SDL_Rect rect;
+				rect.x = startingPosx + i[0] * squareSize + squareSize / 2 - squareSize * 0.075;
+				rect.y = startingPosy + i[1] * squareSize + squareSize / 2 - squareSize * 0.075;
+				rect.w = squareSize * 0.15;
+				rect.h = squareSize * 0.15;
+				SDL_SetRenderDrawColor(renderer, 26, 145, 80, 255);
+				SDL_RenderFillRect(renderer, &rect);
+			}
+		}
+
+		//render pieceHeld at the mouse
+		if (pieceHeld != 0) {
+			int piece = log2(pieceHeld & PIECEMASK);
+			int colour = (pieceHeld & COLOURMASK) >> 7;
+
+			//render piece
+			SDL_Rect rect;
+			rect.x = mousePosX - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
+			rect.y = mousePosY - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
+			rect.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
+			rect.h = squareSize * pieceScale[piece];
+
+			SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
+		}
+		*/
+
+		//show render
+		SDL_RenderPresent(renderer);
+	}
+};
+
+
+
+class MoveManager {
+	//vector movements for each piece type
+	int rookMoves[4][2] = {
+		{1,0},
+		{-1,0},
+		{0,-1},
+		{0,1}
+	}; int bishopMoves[4][2] = {
+		{1,1},
+		{-1,1},
+		{1,-1},
+		{-1,-1}
+	}; int knightMoves[8][2] = {
+		{2,1},
+		{2,-1},
+		{1,2},
+		{-1,2},
+		{-2,1},
+		{-2,-1},
+		{1,-2},
+		{-1,-2}
+	}; int allMoves[8][2] = {
+		{1,1},
+		{-1,1},
+		{1,-1},
+		{-1,-1},
+		{1,0},
+		{-1,0},
+		{0,-1},
+		{0,1}
+	};
+	//game variables
+	uint8_t enPassent[16] = { 0 };
+
 
 	//casts a line with a certain vector until it hits a piece
 	std::vector<std::vector<int>> raycast(int x, int y, int dx, int dy, int len, bool isWhite, uint8_t board[8][8]) {
@@ -286,11 +402,12 @@ private:
 			//checks if king is in check
 			bool inCheck = 0;
 
+			/*
 			if (colour)
 				inCheck = wCheck;
 			else
 				inCheck = bCheck;
-
+			*/
 
 			//check for castling
 			//must not have moved and not be in check
@@ -349,25 +466,98 @@ private:
 		return moves;
 	}
 
-	//update board
-	void update() {
-		if (mouseClick) {
-			//gets square that was clicked
-			int squareX = floor((mousePosX - startingPosx) / squareSize);
-			int squareY = floor((mousePosY - startingPosy) / squareSize);
+	public:
+		bool* isWhiteTurn;
+		int* move;
+
+
+		//returns all legal moves for piece
+		std::vector<std::vector<int>> legalMoves(int x, int y, uint8_t pieceCheck, uint8_t board[8][8]) {
+			std::vector<std::vector<int>> legalMoves;
+
+			//get all available moves
+			for (std::vector<int> i : availableMoves(x, y, pieceCheck, board)) {
+				//copies board
+				uint8_t newBoard[8][8];
+				memcpy(newBoard, board, sizeof(board));
+				//makes the possible move on the new copied board
+				newBoard[i[1]][i[0]] = pieceCheck;
+
+				//check if move will put the king in check
+				if (!(checkCheck(newBoard)[!isWhiteTurn])) {
+					//if not add it as a legal move
+					legalMoves.push_back(i);
+				}
+			}
+
+			return legalMoves;
+		}
+
+		//gets all possible moves for a colour
+		std::vector<std::vector<int>> getAllLegalMoves(bool colourToCheck, uint8_t board[8][8]) {
+			std::vector<std::vector<int>> moves;
+
+			//goes through each piece in the board
+			for (int x = 0; x < WIDTH; x++) {
+				for (int y = 0; y < HEIGHT; y++) {
+					//if there is a piece there
+					if ((board[y][x] & PIECEMASK) != 0) {
+						//if it is the colour that is getting checked
+						bool colour = (board[y][x] & COLOURMASK) >> 7;
+						if (colour == colourToCheck) {
+							//add available moves for that piece
+							for (std::vector<int> i : legalMoves(x, y, board[y][x], board)) {
+								std::vector<int> temp = { x,y,i[0],i[1] };
+								moves.push_back(temp);
+							}
+						}
+					}
+				}
+			}
+			return moves;
+		}
+
+		//returns if each king is in check
+		std::vector<bool> checkCheck(uint8_t board[8][8]) {
+			int wchecks = 0;
+			int bchecks = 0;
+			//looks through all possible moves for white
+			for (std::vector<int> i : getAllMoves(1, board)) {
+				//if a piece can capture the king then add a check
+				if ((board[i[3]][i[2]] & PIECEMASK) == KING)
+					bchecks++;
+			}
+			//do the same for black
+			for (std::vector<int> i : getAllMoves(0, board)) {
+				if ((board[i[3]][i[2]] & PIECEMASK) == KING)
+					wchecks++;
+
+			}
+
+			//make the ints bools
+			if (bchecks > 0) bchecks = 1;
+			if (wchecks > 0) wchecks = 1;
+
+			//return checks
+			return { (bool)bchecks, (bool)wchecks };
+		}
+
+
+		bool makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t pieceHeld, uint8_t board[8][8]) {
 			int validMove = 0;
 
 			//checks square is within play space
 			if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
 				int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
 				//checks available moves
-				std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld);
+				std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld, board);
 
 				//place piece in empty square
 				if (board[squareY][squareX] == 0 && pieceHeld != 0) {
 					//if it is placing it in the same place
 					if (squareX == pieceHeldX && squareY == pieceHeldY) {
 						board[squareY][squareX] = pieceHeld;
+						board[pieceHeldY][pieceHeldX] = 0;
 						pieceHeld = 0;
 					}
 					else {
@@ -375,6 +565,7 @@ private:
 						for (std::vector<int> i : available) {
 							if (i[0] == squareX && i[1] == squareY) {
 								board[squareY][squareX] = pieceHeld;
+								board[pieceHeldY][pieceHeldX] = 0;
 								pieceHeld = 0;
 
 								//move rook when king castles
@@ -413,13 +604,6 @@ private:
 										board[squareY - 1][squareX] = 0;
 								}
 
-								//swap turn
-								isWhiteTurn = !isWhiteTurn;
-
-								//increase move
-								if (!isWhiteTurn && move == 1)
-									move++;
-
 								//stores that piece has moved
 								if ((board[squareY][squareX] & MOVEMASK) >> 6 == 1)
 									board[squareY][squareX] -= MOVEMASK;
@@ -435,31 +619,6 @@ private:
 							pieceHeld = 0;
 							validMove = 0;
 						}
-
-						//check if kings are in check
-						std::vector<bool> temp = checkCheck(board);
-						bCheck = temp[0];
-						wCheck = temp[1];
-
-						//checks for game ending states
-						if (getAllLegalMoves(!isWhiteTurn, board).size() == 0)
-							isRunning = false;
-					}
-				}
-
-				//if clicking on a piece of your colour
-				else if (colour == !isWhiteTurn) {
-					//pickup piece if you aren't holding one
-					if (board[squareY][squareX] != 0 && pieceHeld == 0) {
-						pieceHeld = board[squareY][squareX];
-						board[squareY][squareX] = 0;
-						pieceHeldX = squareX;
-						pieceHeldY = squareY;
-					}
-					//replace held piece if you are holding a piece
-					else if (board[squareY][squareX] != 0 && pieceHeld != 0) {
-						board[pieceHeldY][pieceHeldX] = pieceHeld;
-						pieceHeld = 0;
 					}
 				}
 
@@ -470,15 +629,7 @@ private:
 						if (i[0] == squareX && i[1] == squareY) {
 							//place piece
 							board[squareY][squareX] = pieceHeld;
-							pieceHeld = 0;
-
-							//swap turns
-							isWhiteTurn = !isWhiteTurn;
-
-							//increase move if it is not the first white turn
-							if (!isWhiteTurn && move == 1) {
-								move++;
-							}
+							board[pieceHeldY][pieceHeldX] = 0;
 
 							//removes en passent capture if the pawn is captured
 							if ((board[squareY][squareX] & PIECEMASK) == PAWN) {
@@ -492,6 +643,7 @@ private:
 								}
 							}
 							validMove++;
+
 						}
 					}
 					//replace held piece if a valid move is not made
@@ -499,94 +651,74 @@ private:
 						board[pieceHeldY][pieceHeldX] = pieceHeld;
 						pieceHeld = 0;
 					}
+				}
+			}
 
-					//checks if any king is in check
+			if (validMove > 0)
+				return true;
+			else
+				return false;
+		}
+};
+
+
+
+class ChessGame {
+private:
+	//mouse variables
+	int* mousePosX;
+	int* mousePosY;
+	bool* mouseClick;
+
+	bool isRunning = true;
+	Renderer renderer;
+	MoveManager moveManager;
+	Player* player1;
+	Player* player2;
+
+	//update board
+	void update() {
+		moveManager.makeMove(7, 6, 7, 4, board[6][7], board);
+
+		//swap turn
+		isWhiteTurn = !isWhiteTurn;
+
+		//increase move
+		if (!isWhiteTurn && move == 1)
+			move++;
+
+		//checks for game ending states
+		if (moveManager.getAllLegalMoves(!isWhiteTurn, board).size() == 0)
+			isRunning = false;
+
+	}
+	
+	/*
+	//gets square that was clicked
+	int squareX = floor((mousePosX - startingPosx) / squareSize);
+	int squareY = floor((mousePosY - startingPosy) / squareSize);
+
+					//check if kings are in check
 					std::vector<bool> temp = checkCheck(board);
 					bCheck = temp[0];
 					wCheck = temp[1];
 
-					//checks for game ending states
-					if (getAllLegalMoves(!isWhiteTurn, board).size() == 0)
-						isRunning = false;
+					//if clicking on a piece of your colour
+			else if (colour == !isWhiteTurn) {
+				//pickup piece if you aren't holding one
+				if (board[squareY][squareX] != 0 && pieceHeld == 0) {
+					pieceHeld = board[squareY][squareX];
+					board[squareY][squareX] = 0;
+					pieceHeldX = squareX;
+					pieceHeldY = squareY;
+				}
+				//replace held piece if you are holding a piece
+				else if (board[squareY][squareX] != 0 && pieceHeld != 0) {
+					board[pieceHeldY][pieceHeldX] = pieceHeld;
+					pieceHeld = 0;
 				}
 			}
-		}
-
-		//reset mouseClick
-		mouseClick = false;
-	}
-
-	//clears frame and renders a new one
-	void renderScreen() {
-		//wipe screen to background colour
-		SDL_SetRenderDrawColor(renderer, background.r, background.g, background.b, background.a);
-		SDL_RenderClear(renderer);
-
-		//draw the board
-		drawBackground();
-
-		//render pieces
-		for (int x = 0; x < WIDTH; x++) {
-			for (int y = 0; y < HEIGHT; y++) {
-				if ((board[y][x] & PIECEMASK) != 0) {
-					getPiece(x, y);
-
-					//make the king's square red if its in check
-					if (piece == 5) {
-						if ((!colour && bCheck) || (colour && wCheck))
-							drawSquare(colCheck,
-								x * squareSize + startingPosx,
-								y * squareSize + startingPosy,
-								squareSize, squareSize);
-
-					}
-					
-					//render piece
-					SDL_Rect pos;
-					pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
-					pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
-					pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
-					pos.h = squareSize * pieceScale[piece];
-
-					SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
-				}
-			}
-		}
-
-		//render possible positions for the held piece
-		if (pieceHeld != 0) {
-			std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld);
-
-			for (std::vector<int> i : available) {
-				//draw green rectangle
-				SDL_Rect rect;
-				rect.x = startingPosx + i[0] * squareSize + squareSize / 2 - squareSize * 0.075;
-				rect.y = startingPosy + i[1] * squareSize + squareSize / 2 - squareSize * 0.075;
-				rect.w = squareSize * 0.15;
-				rect.h = squareSize * 0.15;
-				SDL_SetRenderDrawColor(renderer, 26, 145, 80, 255);
-				SDL_RenderFillRect(renderer, &rect);
-			}
-		}
-
-		//render pieceHeld at the mouse
-		if (pieceHeld != 0) {
-			int piece = log2(pieceHeld & PIECEMASK);
-			int colour = (pieceHeld & COLOURMASK) >> 7;
-
-			//render piece
-			SDL_Rect rect;
-			rect.x = mousePosX - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
-			rect.y = mousePosY - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
-			rect.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
-			rect.h = squareSize * pieceScale[piece];
-
-			SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
-		}
-
-		//show render
-		SDL_RenderPresent(renderer);
-	}
+	*/
 
 	//handle SDL window events e.g. key presses
 	void handleEvents() {
@@ -606,7 +738,7 @@ private:
 		case SDL_WINDOWEVENT:
 			switch (event.window.event) {
 			case SDL_WINDOWEVENT_RESIZED:
-				resize = true;
+				renderer.resize = true;
 				break;
 			}
 			break;
@@ -622,92 +754,21 @@ private:
 
 		//get mouse position if it is moved
 		case SDL_MOUSEMOTION:
-			SDL_GetMouseState(&mousePosX, &mousePosY);
+			SDL_GetMouseState(mousePosX, mousePosY);
 			break;
 		
 		//get mouse click
 		case SDL_MOUSEBUTTONDOWN:
-			mouseClick = true;
+			*mouseClick = true;
 			break;
 		};
 	}
-
 public:
 	//public game variables
 	uint8_t board[8][8] = { {0} };
 	bool isWhiteTurn = 1;
 	int move = 0;
 
-	//returns all legal moves for piece
-	std::vector<std::vector<int>> legalMoves(int x, int y, uint8_t pieceCheck) {
-		std::vector<std::vector<int>> legalMoves;
-
-		//get all available moves
-		for (std::vector<int> i : availableMoves(x, y, pieceCheck, board)) {
-			//copies board
-			uint8_t newBoard[8][8];
-			memcpy(newBoard, board, sizeof(board));
-			//makes the possible move on the new copied board
-			newBoard[i[1]][i[0]] = pieceCheck;
-
-			//check if move will put the king in check
-			if (!(checkCheck(newBoard)[!isWhiteTurn])) {
-				//if not add it as a legal move
-				legalMoves.push_back(i);
-			}
-		}
-
-		return legalMoves;
-	}
-
-	//gets all possible moves for a colour
-	std::vector<std::vector<int>> getAllLegalMoves(bool colourToCheck, uint8_t board[8][8]) {
-		std::vector<std::vector<int>> moves;
-
-		//goes through each piece in the board
-		for (int x = 0; x < WIDTH; x++) {
-			for (int y = 0; y < HEIGHT; y++) {
-				//if there is a piece there
-				if ((board[y][x] & PIECEMASK) != 0) {
-					//if it is the colour that is getting checked
-					bool colour = (board[y][x] & COLOURMASK) >> 7;
-					if (colour == colourToCheck) {
-						//add available moves for that piece
-						for (std::vector<int> i : legalMoves(x, y, board[y][x])) {
-							std::vector<int> temp = { x,y,i[0],i[1] };
-							moves.push_back(temp);
-						}
-					}
-				}
-			}
-		}
-		return moves;
-	}
-
-	//returns if each king is in check
-	std::vector<bool> checkCheck(uint8_t board[8][8]) {
-		int wchecks = 0;
-		int bchecks = 0;
-		//looks through all possible moves for white
-		for (std::vector<int> i : getAllMoves(1, board)) {
-			//if a piece can capture the king then add a check
-			if ((board[i[3]][i[2]] & PIECEMASK) == KING)
-				bchecks++;
-		}
-		//do the same for black
-		for (std::vector<int> i : getAllMoves(0, board)) {
-			if ((board[i[3]][i[2]] & PIECEMASK) == KING)
-				wchecks++;
-
-		}
-
-		//make the ints bools
-		if (bchecks > 0) bchecks = 1;
-		if (wchecks > 0) wchecks = 1;
-
-		//return checks
-		return { (bool)bchecks, (bool)wchecks };
-	}
 
 	//load a board state from fen notation
 	void loadBoardFromFen(std::string fen) {
@@ -820,23 +881,24 @@ public:
 	}
 
 	//constructor
-	ChessGame() {
-		//init SDL and open window
-		SDL_Init(SDL_INIT_EVERYTHING);
-		window = SDL_CreateWindow("Chess",
-			SDL_WINDOWPOS_CENTERED,
-			SDL_WINDOWPOS_CENTERED,
-			windowWIDTH,
-			windowHEIGHT,
-			SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-
-		renderer = SDL_CreateRenderer(window, -1, 0);
-
-		//load textures
-		init();
+	ChessGame(Player* playerW, Player* playerB, int* mouseX, int* mouseY, bool* mouseCl) {
+		//init renderer
+		renderer.init();
 
 		//load from fen of standard starting positions
 		loadBoardFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+		player1 = playerW;
+		player2 = playerB;
+		mousePosX = mouseX;
+		mousePosY = mouseY;
+		mouseClick = mouseCl;
+		/*
+		player1->moveManager = &moveManager;
+		player1->chessGame = this;
+		player2->moveManager = &moveManager;
+		player2->chessGame = this;
+		*/
 	}
 
 	//plays main game loop
@@ -844,7 +906,7 @@ public:
 		//main game loop
 		while (isRunning) {
 			handleEvents();
-			renderScreen();
+			renderer.renderScreen(board);
 			update();
 		}
 
@@ -852,8 +914,15 @@ public:
 	}
 };
 
+
 int main(int argc, char* argv[]) {
-	ChessGame chess;
+	int mousePosX, mousePosY;
+	bool mouseClick;
+
+	Human player1(&mousePosX,&mousePosY,&mouseClick);
+	Human player2(&mousePosX, &mousePosY, &mouseClick);
+
+	ChessGame chess(&player1, &player2, &mousePosX, &mousePosY, &mouseClick);
 
 	chess.Play();
 
