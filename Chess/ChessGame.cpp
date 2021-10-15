@@ -1,7 +1,10 @@
 #include "ChessGame.h"
 
 void ChessGame::update() {
-	player1->update();
+	if (player1->turn)
+		player1->update();
+	else
+		player2->update();
 	/*
 	moveManager.makeMove(7, 6, 7, 4, board[6][7], board);
 
