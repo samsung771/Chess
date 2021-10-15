@@ -15,8 +15,7 @@ Human::Human(int* mouseX, int* mouseY, bool* mouseCl) : Player() {
 	mouseClick = mouseCl;
 }
 
-void Human::update() {
-	turn = 1;
+bool Human::update() {
 	int squareSize = chessGamePtr->renderer.getSquareSize();
 	int startingPosx = chessGamePtr->renderer.getStartPosX();
 	int startingPosy = chessGamePtr->renderer.getStartPosY();
@@ -28,7 +27,7 @@ void Human::update() {
 		if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
 			int col = (chessGamePtr->board[squareY][squareX] & COLOURMASK) >> 7;
 
-			if (chessGamePtr->board[squareY][squareX] != 0){
+			if (chessGamePtr->board[squareY][squareX] != 0) {
 				//if clicking on a piece of your colour
 				if (colour == col) {
 					//pickup piece if you aren't holding one
@@ -48,21 +47,27 @@ void Human::update() {
 			}
 			else {
 				if (chessGamePtr->moveManager.makeMove(pieceHeldX, pieceHeldY, squareX, squareY, pieceHeld, chessGamePtr->board)) {
-					turn = 0;
+					return true;
 				}
 				pieceHeld = 0;
 			}
 		}
 
-		
+		//set pointers for the renderer
 		chessGamePtr->renderer.mousePosY = mousePosY;
 		chessGamePtr->renderer.mousePosX = mousePosX;
-		chessGamePtr->renderer.available = chessGamePtr->moveManager.legalMoves(pieceHeldX,pieceHeldY,pieceHeld,chessGamePtr->board);
-		
+
+		//give the renderer available moves
+		chessGamePtr->renderer.available = chessGamePtr->moveManager.legalMoves(pieceHeldX, pieceHeldY, pieceHeld, chessGamePtr->board);
+
+		//set piece variables
+		chessGamePtr->renderer.pieceHeld = pieceHeld;
+		chessGamePtr->renderer.pieceHeldX = pieceHeldX;
+		chessGamePtr->renderer.pieceHeldY = pieceHeldY;
+
+
 		*mouseClick = false;
 	}
 
-	chessGamePtr->renderer.pieceHeld = pieceHeld;
-	chessGamePtr->renderer.pieceHeldX = pieceHeldX;
-	chessGamePtr->renderer.pieceHeldY = pieceHeldY;
+	return false;
 }

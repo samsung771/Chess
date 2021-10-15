@@ -15,7 +15,6 @@ public:
 	bool check = false;
 	bool checkMate = false;
 	bool colour;
-	bool turn = 1;
 
 	ChessGame* chessGamePtr = nullptr;
 
@@ -39,5 +38,5 @@ public:
 
 	Human(int* mouseX, int* mouseY, bool* mouseCl);
 
-	void update();
+	bool update();
 };
