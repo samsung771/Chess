@@ -263,6 +263,7 @@ bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squa
 			//if it is placing it in the same place
 			if (squareX == pieceHeldX && squareY == pieceHeldY) {
 				board[squareY][squareX] = pieceHeld;
+				board[pieceHeldY][pieceHeldX] = 0;
 				pieceHeld = 0;
 			}
 			else {

@@ -2,18 +2,6 @@
 
 void ChessGame::update() {
 	player1->update();
-
-	/*
-	if (isWhiteTurn) {
-		if (player2->update())
-			isWhiteTurn = !isWhiteTurn;
-	}
-	else {
-		if (player1->update())
-			isWhiteTurn = !isWhiteTurn;
-	}
-	*/
-
 	/*
 	moveManager.makeMove(7, 6, 7, 4, board[6][7], board);
 
