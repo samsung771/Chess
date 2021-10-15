@@ -30,19 +30,22 @@ void Human::update() {
 			//check if kings are in check
 			std::vector<bool> temp = chessGamePtr->moveManager.checkCheck(chessGamePtr->board);
 			check = temp[(int)colour];
-			//if clicking on a piece of your colour
-			if (colour == col) {
-				//pickup piece if you aren't holding one
-				if (chessGamePtr->board[squareY][squareX] != 0 && pieceHeld == 0) {
-					pieceHeld = chessGamePtr->board[squareY][squareX];
-					chessGamePtr->board[squareY][squareX] = 0;
-					pieceHeldX = squareX;
-					pieceHeldY = squareY;
-				}
-				//replace held piece if you are holding a piece
-				else if (chessGamePtr->board[squareY][squareX] != 0 && pieceHeld != 0) {
-					chessGamePtr->board[pieceHeldY][pieceHeldX] = pieceHeld;
-					pieceHeld = 0;
+
+			if (chessGamePtr->board[squareY][squareX] != 0) {
+				//if clicking on a piece of your colour
+				if (colour == col) {
+					//pickup piece if you aren't holding one
+					if (pieceHeld == 0) {
+						pieceHeld = chessGamePtr->board[squareY][squareX];
+						chessGamePtr->board[squareY][squareX] = 0;
+						pieceHeldX = squareX;
+						pieceHeldY = squareY;
+					}
+					//replace held piece if you are holding a piece
+					else if (pieceHeld != 0) {
+						chessGamePtr->board[pieceHeldY][pieceHeldX] = pieceHeld;
+						pieceHeld = 0;
+					}
 				}
 			}
 
@@ -52,14 +55,14 @@ void Human::update() {
 			}
 		}
 
-		/*
+		
 		chessGamePtr->renderer.pieceHeld = pieceHeld;
 		chessGamePtr->renderer.pieceHeldX = pieceHeldX;
 		chessGamePtr->renderer.pieceHeldY = pieceHeldY;
-		chessGamePtr->renderer.mousePosY = *mousePosY;
-		chessGamePtr->renderer.mousePosX = *mousePosY;
+		chessGamePtr->renderer.mousePosY = mousePosY;
+		chessGamePtr->renderer.mousePosX = mousePosX;
 		chessGamePtr->renderer.available = chessGamePtr->moveManager.legalMoves(pieceHeldX,pieceHeldY,pieceHeld,chessGamePtr->board);
-		*/
+		
 		*mouseClick = false;
 	}
 }

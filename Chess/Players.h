@@ -38,5 +38,5 @@ public:
 
 	Human(int* mouseX, int* mouseY, bool* mouseCl);
 
-	bool update();
+	void update();
 };

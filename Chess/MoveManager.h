@@ -85,5 +85,5 @@ public:
 	std::vector<bool> checkCheck(uint8_t board[8][8]);
 
 
-	bool makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t pieceHeld, uint8_t board[8][8]);
+	bool makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[8][8]);
 };

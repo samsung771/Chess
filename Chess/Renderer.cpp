@@ -116,11 +116,9 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 		}
 	}
 
-	/*
+	
 	//render possible positions for the held piece
 	if (pieceHeld != 0) {
-		std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld);
-
 		for (std::vector<int> i : available) {
 			//draw green rectangle
 			SDL_Rect rect;
@@ -131,23 +129,21 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 			SDL_SetRenderDrawColor(renderer, 26, 145, 80, 255);
 			SDL_RenderFillRect(renderer, &rect);
 		}
-	}
 
-	//render pieceHeld at the mouse
-	if (pieceHeld != 0) {
+		//render pieceHeld at the mouse
 		int piece = log2(pieceHeld & PIECEMASK);
 		int colour = (pieceHeld & COLOURMASK) >> 7;
 
 		//render piece
 		SDL_Rect rect;
-		rect.x = mousePosX - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
-		rect.y = mousePosY - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
+		rect.x = *mousePosX - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
+		rect.y = *mousePosY - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
 		rect.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
 		rect.h = squareSize * pieceScale[piece];
 
 		SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
 	}
-	*/
+	
 
 	//show render
 	SDL_RenderPresent(renderer);

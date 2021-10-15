@@ -52,6 +52,12 @@ public:
 	bool resize = true;
 	uint8_t pieceHeld;
 	int pieceHeldX, pieceHeldY = 0;
+	
+	int* mousePosX;
+	int* mousePosY;
+
+	std::vector < std::vector<int> > available;
+
 
 	//load textures and initialise some variables
 	void init();
