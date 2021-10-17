@@ -357,6 +357,9 @@ bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squa
 				pieceHeld = 0;
 			}
 		}
+		else {
+			int a = 0;
+		}
 	}
 
 	if (validMove > 0)
