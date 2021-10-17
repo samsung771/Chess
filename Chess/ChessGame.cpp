@@ -171,7 +171,7 @@ void ChessGame::loadBoardFromFen(std::string fen) {
 	}
 }
 
-ChessGame::ChessGame(Human* playerW, Human* playerB, int* mouseX, int* mouseY, bool* mouseCl) {
+ChessGame::ChessGame(Player* playerW, Player* playerB, int* mouseX, int* mouseY, bool* mouseCl) {
 	//init renderer
 	renderer.init();
 
@@ -180,6 +180,7 @@ ChessGame::ChessGame(Human* playerW, Human* playerB, int* mouseX, int* mouseY, b
 
 	player1 = playerW;
 	player2 = playerB;
+
 	mousePosX = mouseX;
 	mousePosY = mouseY;
 	mouseClick = mouseCl;

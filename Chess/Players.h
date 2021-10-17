@@ -20,7 +20,7 @@ public:
 
 	Player();
 
-	void update();
+	virtual void update();
 };
 
 

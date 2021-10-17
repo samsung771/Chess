@@ -36,8 +36,8 @@ class Human;
 class ChessGame {
 private:
 	bool isRunning = true;
-	Human* player1;
-	Human* player2;
+	Player* player1;
+	Player* player2;
 
 	//update board
 	void update();
@@ -64,7 +64,7 @@ public:
 	void loadBoardFromFen(std::string fen);
 
 	//constructor
-	ChessGame(Human* playerW, Human* playerB, int* mouseX, int* mouseY, bool* mouseCl);
+	ChessGame(Player* playerW, Player* playerB, int* mouseX, int* mouseY, bool* mouseCl);
 
 	//plays main game loop
 	int Play();

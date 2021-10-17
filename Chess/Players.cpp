@@ -19,6 +19,7 @@ void Human::update() {
 	int squareSize = chessGamePtr->renderer.getSquareSize();
 	int startingPosx = chessGamePtr->renderer.getStartPosX();
 	int startingPosy = chessGamePtr->renderer.getStartPosY();
+
 	if (*mouseClick) {
 		//gets square that was clicked
 		int squareX = floor((*mousePosX - startingPosx) / squareSize);
