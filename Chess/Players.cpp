@@ -4,8 +4,8 @@ Player::Player() {
 
 }
 
-void Player::update() {
-
+bool Player::update() {
+	return false;
 }
 
 
@@ -15,7 +15,7 @@ Human::Human(int* mouseX, int* mouseY, bool* mouseCl) : Player() {
 	mouseClick = mouseCl;
 }
 
-void Human::update() {
+bool Human::update() {
 	int squareSize = chessGamePtr->renderer.getSquareSize();
 	int startingPosx = chessGamePtr->renderer.getStartPosX();
 	int startingPosy = chessGamePtr->renderer.getStartPosY();
@@ -49,8 +49,10 @@ void Human::update() {
 			}
 
 			else {
-				if (chessGamePtr->moveManager.makeMove(pieceHeldX, pieceHeldY, squareX, squareY, pieceHeld, chessGamePtr->board))
+				if (chessGamePtr->moveManager.makeMove(pieceHeldX, pieceHeldY, squareX, squareY, pieceHeld, chessGamePtr->board)) {
 					pieceHeld = 0;
+					return true;
+				}
 			}
 		}
 
@@ -64,4 +66,6 @@ void Human::update() {
 		
 		*mouseClick = false;
 	}
+
+	return false;
 }

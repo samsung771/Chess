@@ -20,7 +20,7 @@ public:
 
 	Player();
 
-	virtual void update();
+	virtual bool update();
 };
 
 
@@ -38,5 +38,5 @@ public:
 
 	Human(int* mouseX, int* mouseY, bool* mouseCl);
 
-	void update();
+	bool update();
 };

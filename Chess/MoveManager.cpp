@@ -256,7 +256,7 @@ bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squa
 	if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
 		int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
 		//checks available moves
-		std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld, board);
+		std::vector<std::vector<int>> available = availableMoves(pieceHeldX, pieceHeldY, pieceHeld, board);
 
 		//place piece in empty square
 		if (board[squareY][squareX] == 0 && pieceHeld != 0) {
