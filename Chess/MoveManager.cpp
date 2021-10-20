@@ -32,6 +32,8 @@ std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t 
 	bool colour = (pieceCheck & COLOURMASK) >> 7;
 	bool hasMoved = !((pieceCheck & MOVEMASK) >> 6);
 
+	int rank = 0;
+
 	std::vector<std::vector<int>> possibleMoves;
 	switch (piece) {
 	case PAWN:
@@ -61,10 +63,14 @@ std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t 
 		else add = 8;
 
 		//check en passent squares
+		if (((!colour * -1) | 1) == 1)
+			rank = 5;
+		else
+			rank = 3;
 		//left
 		if (enPassent[x + 1 + add] == y + ((!colour * -1) | 1)) {
 			for (std::vector<int> i : raycast(x, y, 1, (!colour * -1) | 1, 1, !colour, board)) {
-				if (i[2] == 0) {
+				if (i[2] == 0 && y == rank) {
 					i[2] = 2;
 					possibleMoves.push_back(i);
 				}
@@ -73,7 +79,7 @@ std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t 
 		//right
 		if (enPassent[x - 1 + add] == y + ((!colour * -1) | 1)) {
 			for (std::vector<int> i : raycast(x, y, -1, (!colour * -1) | 1, 1, !colour, board)) {
-				if (i[2] == 0) {
+				if (i[2] == 0 && y == rank) {
 					i[2] = 2;
 					possibleMoves.push_back(i);
 				}
@@ -267,7 +273,6 @@ bool MoveManager::checkCheck(uint8_t board[][8], bool colour) {
 			if (i[2] == 1 && (board[i[1]][i[0]] & PIECEMASK) == PAWN)
 				return 1;
 	}
-
 
 	//checks rook moves
 	for (int i = 0; i < 4; i++) {
