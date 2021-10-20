@@ -1,6 +1,6 @@
 #include "MoveManager.h"
 
-std::vector<std::vector<int>> MoveManager::raycast(int x, int y, int dx, int dy, int len, bool isWhite, uint8_t board[8][8]) {
+std::vector<std::vector<int>> MoveManager::raycast(int x, int y, int dx, int dy, int len, bool isWhite, uint8_t board[][8]) {
 	std::vector<std::vector<int>> path;
 	for (int i = 0; i < len; i++) {
 		//add vector
@@ -27,7 +27,7 @@ std::vector<std::vector<int>> MoveManager::raycast(int x, int y, int dx, int dy,
 	return path;
 }
 
-std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t pieceCheck, uint8_t board[8][8]) {
+std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t pieceCheck, uint8_t board[][8]) {
 	int piece = (pieceCheck & PIECEMASK);
 	bool colour = (pieceCheck & COLOURMASK) >> 7;
 	bool hasMoved = !((pieceCheck & MOVEMASK) >> 6);
@@ -158,7 +158,7 @@ std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t 
 	return possibleMoves;
 }
 
-std::vector<std::vector<int>> MoveManager::getAllMoves(bool colourToCheck, uint8_t board[8][8]) {
+std::vector<std::vector<int>> MoveManager::getAllMoves(bool colourToCheck, uint8_t board[][8]) {
 	std::vector<std::vector<int>> moves;
 
 	//goes through each piece in the board
@@ -181,19 +181,27 @@ std::vector<std::vector<int>> MoveManager::getAllMoves(bool colourToCheck, uint8
 	return moves;
 }
 
-std::vector<std::vector<int>> MoveManager::legalMoves(int x, int y, uint8_t pieceCheck, uint8_t board[8][8]) {
+std::vector<std::vector<int>> MoveManager::legalMoves(int x, int y, uint8_t pieceCheck, uint8_t board[][8], bool colour) {
 	std::vector<std::vector<int>> legalMoves;
 
 	//get all available moves
 	for (std::vector<int> i : availableMoves(x, y, pieceCheck, board)) {
 		//copies board
 		uint8_t newBoard[8][8];
-		memcpy(newBoard, board, sizeof(board));
+
+		//copies board
+		for (int x = 0; x < WIDTH; x++) {
+			for (int y = 0; y < HEIGHT; y++) {
+				newBoard[y][x] = board[y][x];
+			}
+		}
+		
 		//makes the possible move on the new copied board
 		newBoard[i[1]][i[0]] = pieceCheck;
+		newBoard[y][x] = 0;
 
 		//check if move will put the king in check
-		if (!(checkCheck(newBoard)[!isWhiteTurn])) {
+		if (!(checkCheck(newBoard, !colour))) {
 			//if not add it as a legal move
 			legalMoves.push_back(i);
 		}
@@ -202,7 +210,7 @@ std::vector<std::vector<int>> MoveManager::legalMoves(int x, int y, uint8_t piec
 	return legalMoves;
 }
 
-std::vector<std::vector<int>> MoveManager::getAllLegalMoves(bool colourToCheck, uint8_t board[8][8]) {
+std::vector<std::vector<int>> MoveManager::getAllLegalMoves(bool colourToCheck, uint8_t board[][8]) {
 	std::vector<std::vector<int>> moves;
 
 	//goes through each piece in the board
@@ -214,7 +222,7 @@ std::vector<std::vector<int>> MoveManager::getAllLegalMoves(bool colourToCheck, 
 				bool colour = (board[y][x] & COLOURMASK) >> 7;
 				if (colour == colourToCheck) {
 					//add available moves for that piece
-					for (std::vector<int> i : legalMoves(x, y, board[y][x], board)) {
+					for (std::vector<int> i : legalMoves(x, y, board[y][x], board, colourToCheck)) {
 						std::vector<int> temp = { x,y,i[0],i[1] };
 						moves.push_back(temp);
 					}
@@ -225,38 +233,67 @@ std::vector<std::vector<int>> MoveManager::getAllLegalMoves(bool colourToCheck, 
 	return moves;
 }
 
-std::vector<bool> MoveManager::checkCheck(uint8_t board[8][8]) {
-	int wchecks = 0;
-	int bchecks = 0;
-	//looks through all possible moves for white
-	for (std::vector<int> i : getAllMoves(1, board)) {
-		//if a piece can capture the king then add a check
-		if ((board[i[3]][i[2]] & PIECEMASK) == KING)
-			bchecks++;
-	}
-	//do the same for black
-	for (std::vector<int> i : getAllMoves(0, board)) {
-		if ((board[i[3]][i[2]] & PIECEMASK) == KING)
-			wchecks++;
+bool MoveManager::checkCheck(uint8_t board[][8], bool colour) {
+	int x, y = 0;
 
+	//goes through each piece in the board
+	for (int i = 0; i < WIDTH; i++) {
+		for (int j = 0; j < HEIGHT; j++) {
+			if ((board[j][i] & PIECEMASK) == KING && !((board[j][i] & COLOURMASK) >> 7) == colour){
+				x = i;
+				y = j;
+			}
+		}
 	}
 
-	//make the ints bools
-	if (bchecks > 0) bchecks = 1;
-	if (wchecks > 0) wchecks = 1;
 
-	//return checks
-	return { (bool)bchecks, (bool)wchecks };
+	//checks knight moves
+	for (int i = 0; i < 8; i++) {
+		for (std::vector<int> i : raycast(x, y, knightMoves[i][0], knightMoves[i][1], 1, colour, board))
+			if (i[2] == 1 && (board[i[1]][i[0]] & PIECEMASK) == KNIGHT)
+				return 1;
+	}
+
+	//check king moves
+	for (int i = 0; i < 8; i++) {
+		for (std::vector<int> i : raycast(x, y, allMoves[i][0], allMoves[i][1], 1, colour, board))
+			if (i[2] == 1 && (board[i[1]][i[0]] & PIECEMASK) == KING)
+				return 1;
+	}
+
+	//checks bishop moves
+	for (int i = 0; i < 4; i++) {
+		for (std::vector<int> i : raycast(x, y, bishopMoves[i][0], bishopMoves[i][1], 1, colour, board))
+			if (i[2] == 1 && (board[i[1]][i[0]] & PIECEMASK) == PAWN)
+				return 1;
+	}
+
+
+	//checks rook moves
+	for (int i = 0; i < 4; i++) {
+		for (std::vector<int> i : raycast(x, y, rookMoves[i][0], rookMoves[i][1], 10, colour, board))
+			if (i[2] == 1 && ((board[i[1]][i[0]] & PIECEMASK) == ROOK || (board[i[1]][i[0]] & PIECEMASK) == QUEEN))
+				return 1;
+	}
+
+	//checks bishop moves
+	for (int i = 0; i < 4; i++) {
+		for (std::vector<int> i : raycast(x, y, bishopMoves[i][0], bishopMoves[i][1], 10, colour, board))
+			if (i[2] == 1 && ((board[i[1]][i[0]] & PIECEMASK) == BISHOP || (board[i[1]][i[0]] & PIECEMASK) == QUEEN))
+				return 1;
+	}
+
+	return 0;
 }
 
-bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[8][8]) {
+bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[][8]) {
 	int validMove = 0;
 
 	//checks square is within play space
 	if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
 		int colour = (board[squareY][squareX] & COLOURMASK) >> 7;
 		//checks available moves
-		std::vector<std::vector<int>> available = availableMoves(pieceHeldX, pieceHeldY, pieceHeld, board);
+		std::vector<std::vector<int>> available = legalMoves(pieceHeldX, pieceHeldY, pieceHeld, board, (pieceHeld & COLOURMASK) >> 7);
 
 		//place piece in empty square
 		if (board[squareY][squareX] == 0 && pieceHeld != 0) {
@@ -292,12 +329,12 @@ bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squa
 							else if (squareY - pieceHeldY == -2)
 								enPassent[squareX] = squareY + 1;
 							else if (!((board[squareY][squareX] & COLOURMASK) >> 7)) {
-								enPassent[squareX + 8] = 0;
-								enPassent[pieceHeldX] = 0;
+								enPassent[squareX + 8] = NULL;
+								enPassent[pieceHeldX] = NULL;
 							}
 							else {
-								enPassent[squareX] = 0;
-								enPassent[pieceHeldX] = 0;
+								enPassent[squareX] = NULL;
+								enPassent[pieceHeldX] = NULL;
 							}
 						}
 

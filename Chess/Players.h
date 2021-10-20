@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 #include "ChessGame.h"
+#include <stdlib.h>
+#include <time.h>  
 
 
 class ChessGame;
@@ -38,5 +40,9 @@ public:
 
 	Human(int* mouseX, int* mouseY, bool* mouseCl);
 
+	bool update();
+};
+
+class RandAI : public Player {
 	bool update();
 };

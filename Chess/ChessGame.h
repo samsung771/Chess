@@ -32,6 +32,7 @@ bool hasMoved = !(board[y][x] & MOVEMASK) >> 6;
 
 class Player;
 class Human;
+class RandAI;
 
 class ChessGame {
 private:
