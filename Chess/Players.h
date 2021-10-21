@@ -15,7 +15,6 @@ class ChessGame;
 class Player {
 public:
 	bool check = false;
-	bool checkMate = false;
 	bool colour;
 
 	ChessGame* chessGamePtr = nullptr;

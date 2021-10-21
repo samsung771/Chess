@@ -91,7 +91,7 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 			if ((board[y][x] & PIECEMASK) != 0) {
 				getPiece(x, y);
 
-				/*
+				
 				//make the king's square red if its in check
 				if (piece == 5) {
 					if ((!colour && bCheck) || (colour && wCheck))
@@ -101,7 +101,7 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 							squareSize, squareSize);
 
 				}
-				*/
+				
 
 
 				//render piece

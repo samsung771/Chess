@@ -56,6 +56,8 @@ public:
 	int* mousePosX;
 	int* mousePosY;
 
+	bool bCheck, wCheck;
+
 	std::vector < std::vector<int> > available;
 
 

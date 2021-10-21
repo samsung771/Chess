@@ -12,8 +12,8 @@ int main(int argc, char* argv[]) {
 	bool mouseClick;
 
 	Human player1(&mousePosX, &mousePosY, &mouseClick);
-	//Human player2(&mousePosX, &mousePosY, &mouseClick);
-	RandAI player2;
+	Human player2(&mousePosX, &mousePosY, &mouseClick);
+	//RandAI player2;
 
 	player1.colour = 0;
 	player2.colour = 1;

@@ -2,27 +2,28 @@
 
 void ChessGame::update() {
 	if (isWhiteTurn) {
-		if (player1->update())
+		if (player1->update()) {
 			isWhiteTurn = !isWhiteTurn;
+
+			player1->check = moveManager.checkCheck(board, 0);
+			player2->check = moveManager.checkCheck(board, 1);
+
+			renderer.bCheck = player2->check;
+			renderer.wCheck = player1->check;
+		}
 	}
 	else {
-		if (player2->update())
+		if (player2->update()) {
 			isWhiteTurn = !isWhiteTurn;
+
+			player1->check = moveManager.checkCheck(board, 0);
+			player2->check = moveManager.checkCheck(board, 1);
+
+			renderer.bCheck = player2->check;
+			renderer.wCheck = player1->check;
+		}
 	}
-	/*
-	moveManager.makeMove(7, 6, 7, 4, board[6][7], board);
 
-	//swap turn
-	isWhiteTurn = !isWhiteTurn;
-
-	//increase move
-	if (!isWhiteTurn && move == 1)
-		move++;
-
-	//checks for game ending states
-	if (moveManager.getAllLegalMoves(!isWhiteTurn, board).size() == 0)
-		isRunning = false;
-		*/
 }
 
 void ChessGame::handleEvents() {
