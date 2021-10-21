@@ -67,14 +67,16 @@ class MoveManager {
 	//gets available moves for a piece
 	std::vector<std::vector<int>> availableMoves(int x, int y, uint8_t pieceCheck, uint8_t board[8][8]);
 
+	//gets all possible moves for a colour
+	std::vector<std::vector<int>> getAllMoves(bool colourToCheck, uint8_t board[8][8]);
+
+
 
 public:
 	bool* isWhiteTurn;
 	int* move;
-
-
-	//gets all possible moves for a colour
-	std::vector<std::vector<int>> getAllMoves(bool colourToCheck, uint8_t board[8][8]);
+	bool wCheck;
+	bool bCheck;
 
 	//returns all legal moves for piece
 	std::vector<std::vector<int>> legalMoves(int x, int y, uint8_t pieceCheck, uint8_t board[8][8], bool colour);
@@ -85,6 +87,9 @@ public:
 	//returns if each king is in check
 	bool checkCheck(uint8_t board[8][8], bool colour);
 
+	//checks if a move is valid and makes the move
+	int makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[8][8]);
 
-	bool makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[8][8]);
+	//promotes a pawn
+	bool promotePiece(uint8_t promoteTo, bool pieceCol, uint8_t board[][8]);
 };

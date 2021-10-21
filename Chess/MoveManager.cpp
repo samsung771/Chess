@@ -66,20 +66,20 @@ std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t 
 		if (((!colour * -1) | 1) == 1)
 			rank = 5;
 		else
-			rank = 3;
-		//left
+			rank = 2;
+		//right
 		if (enPassent[x + 1 + add] == y + ((!colour * -1) | 1)) {
 			for (std::vector<int> i : raycast(x, y, 1, (!colour * -1) | 1, 1, !colour, board)) {
-				if (i[2] == 0 && y == rank) {
+				if (i[2] == 0 && i[1] == rank) {
 					i[2] = 2;
 					possibleMoves.push_back(i);
 				}
 			}
 		}
-		//right
+		//left
 		if (enPassent[x - 1 + add] == y + ((!colour * -1) | 1)) {
 			for (std::vector<int> i : raycast(x, y, -1, (!colour * -1) | 1, 1, !colour, board)) {
-				if (i[2] == 0 && y == rank) {
+				if (i[2] == 0 && i[1] == rank) {
 					i[2] = 2;
 					possibleMoves.push_back(i);
 				}
@@ -124,12 +124,10 @@ std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t 
 		//checks if king is in check
 		bool inCheck = 0;
 
-		/*
 		if (colour)
 			inCheck = wCheck;
 		else
 			inCheck = bCheck;
-		*/
 
 		//check for castling
 		//must not have moved and not be in check
@@ -291,7 +289,7 @@ bool MoveManager::checkCheck(uint8_t board[][8], bool colour) {
 	return 0;
 }
 
-bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[][8]) {
+int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[][8]) {
 	int validMove = 0;
 
 	//checks square is within play space
@@ -334,22 +332,29 @@ bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squa
 							else if (squareY - pieceHeldY == -2)
 								enPassent[squareX] = squareY + 1;
 							else if (!((board[squareY][squareX] & COLOURMASK) >> 7)) {
-								enPassent[squareX + 8] = NULL;
-								enPassent[pieceHeldX] = NULL;
+								enPassent[squareX + 8] = 0;
+								enPassent[pieceHeldX + 8] = 0;
 							}
 							else {
-								enPassent[squareX] = NULL;
-								enPassent[pieceHeldX] = NULL;
+								enPassent[squareX] = 0;
+								enPassent[pieceHeldX] = 0;
+							}
+
+
+							//en passent capture
+							if (i[2] == 2) {
+								if (!((board[squareY][squareX] & COLOURMASK) >> 7))
+									board[squareY + 1][squareX] = 0;
+								else
+									board[squareY - 1][squareX] = 0;
+								enPassent[squareX + (!colour * 8)] = 0;
+							}
+
+							if (squareY == (colour * 7)) {
+								return 2;
 							}
 						}
 
-						//en passent capture
-						if (i[2] == 2) {
-							if (!((board[squareY][squareX] & COLOURMASK) >> 7))
-								board[squareY + 1][squareX] = 0;
-							else
-								board[squareY - 1][squareX] = 0;
-						}
 
 						//stores that piece has moved
 						if ((board[squareY][squareX] & MOVEMASK) >> 6 == 1)
@@ -391,6 +396,10 @@ bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squa
 					}
 					validMove++;
 
+					if ((board[squareY][squareX] & PIECEMASK) == PAWN && squareY == (!colour * 7)) {
+						pieceHeld = 0;
+						return 2;
+					}
 				}
 			}
 			//replace held piece if a valid move is not made
@@ -399,14 +408,34 @@ bool MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squa
 				pieceHeld = 0;
 			}
 		}
-		else {
-			int a = 0;
-		}
 	}
 
 	if (validMove > 0)
-		return true;
+		return 1;
 	else
-		return false;
+		return 0;
 }
 
+bool MoveManager::promotePiece(uint8_t promoteTo, bool pieceCol, uint8_t board[][8]) {
+	if (!pieceCol) {
+		for (int i = 0; i < WIDTH; i++) {
+			getPiece(i, 0);
+
+			if (colour == pieceCol && piece == 0) {
+				board[0][i] = promoteTo;
+				return true;
+			}
+		}
+	}
+	else {
+		for (int i = 0; i < WIDTH; i++) {
+			getPiece(i, 7);
+
+			if (colour == pieceCol && piece == 0) {
+				board[7][i] = (0b10000000 | promoteTo);
+				return true;
+			}
+		}
+	}
+	return false;
+}

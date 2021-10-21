@@ -8,6 +8,10 @@ bool Player::update() {
 	return false;
 }
 
+bool Player::promote() {
+	return false;
+}
+
 
 Human::Human(int* mouseX, int* mouseY, bool* mouseCl) : Player() {
 	mousePosX  = mouseX;
@@ -45,8 +49,13 @@ bool Human::update() {
 			}
 
 			else {
-				if (chessGamePtr->moveManager.makeMove(pieceHeldX, pieceHeldY, squareX, squareY, pieceHeld, chessGamePtr->board)) {
+				int returnVal = chessGamePtr->moveManager.makeMove(pieceHeldX, pieceHeldY, squareX, squareY, pieceHeld, chessGamePtr->board);
+				if (returnVal == 1) {
 					pieceHeld = 0;
+					return true;
+				}
+				else if (returnVal == 2) {
+					chessGamePtr->moveManager.promotePiece(QUEEN, colour, chessGamePtr->board);
 					return true;
 				}
 			}
@@ -70,6 +79,11 @@ bool Human::update() {
 	}
 
 	return false;
+}
+
+
+bool Human::promote() {
+	return 0;
 }
 
 
