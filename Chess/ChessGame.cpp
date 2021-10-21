@@ -2,8 +2,7 @@
 
 void ChessGame::update() {
 	if (isWhiteTurn) {
-		int returnVal = player1->update();
-		if (returnVal == 1) {
+		if (player1->update()) {
 			isWhiteTurn = !isWhiteTurn;
 
 			player1->check = moveManager.checkCheck(board, 0);
@@ -14,9 +13,6 @@ void ChessGame::update() {
 
 			moveManager.bCheck = player2->check;
 			moveManager.wCheck = player1->check;
-		}
-		else if (returnVal == 2) {
-			player1->promote();
 		}
 	}
 	else {

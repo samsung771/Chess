@@ -8,10 +8,6 @@ bool Player::update() {
 	return false;
 }
 
-bool Player::promote() {
-	return false;
-}
-
 
 Human::Human(int* mouseX, int* mouseY, bool* mouseCl) : Player() {
 	mousePosX  = mouseX;
@@ -79,11 +75,6 @@ bool Human::update() {
 	}
 
 	return false;
-}
-
-
-bool Human::promote() {
-	return 0;
 }
 
 

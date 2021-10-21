@@ -22,8 +22,6 @@ public:
 	Player();
 
 	virtual bool update();
-
-	virtual bool promote();
 };
 
 
@@ -42,12 +40,8 @@ public:
 	Human(int* mouseX, int* mouseY, bool* mouseCl);
 
 	bool update();
-
-	bool promote();
 };
 
 class RandAI : public Player {
 	bool update();
-
-	bool promote();
 };
