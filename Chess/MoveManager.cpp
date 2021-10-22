@@ -331,7 +331,7 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 								enPassent[squareX + 8] = squareY - 1;
 							else if (squareY - pieceHeldY == -2)
 								enPassent[squareX] = squareY + 1;
-							else if (!((board[squareY][squareX] & COLOURMASK) >> 7)) {
+							else if (((board[squareY][squareX] & COLOURMASK) >> 7)) {
 								enPassent[squareX + 8] = 0;
 								enPassent[pieceHeldX + 8] = 0;
 							}
@@ -385,7 +385,7 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 
 					//removes en passent capture if the pawn is captured
 					if ((board[squareY][squareX] & PIECEMASK) == PAWN) {
-						if (!((pieceHeld & COLOURMASK) >> 7)) {
+						if (((pieceHeld & COLOURMASK) >> 7)) {
 							enPassent[squareX + 8] = 0;
 							enPassent[pieceHeldX + 8] = 0;
 						}
