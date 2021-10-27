@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <string>
 #include <vector>
+#include <iostream>
 
 
 #define WIDTH  8

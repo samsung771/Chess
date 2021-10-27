@@ -12,7 +12,7 @@ void Renderer::drawBackground() {
 	if (resize) {
 		SDL_GetWindowSize(window, &w, &h);
 
-		if (w > h) squareSize = h / HEIGHT;
+		if (w > h - (squareSize*2 + 40)) squareSize = (h - (squareSize*2 + 40)) / HEIGHT;
 		else squareSize = w / WIDTH;
 
 		startingPosx = w / 2 - squareSize * 4;
@@ -77,6 +77,19 @@ void Renderer::init() {
 	SDL_FreeSurface(temp);
 }
 
+void Renderer::renderButton(SDL_Colour col, int piece, int colour, int x, int y, int w, int h ) {
+	drawSquare(col, x, y, w, h);
+
+	//render piece
+	SDL_Rect pos;
+	pos.x = x + squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2;
+	pos.y = y + squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2;
+	pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
+	pos.h = squareSize * pieceScale[piece];
+
+	SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
+}
+
 void Renderer::renderScreen(uint8_t board[8][8]) {
 	//wipe screen to background colour
 	SDL_SetRenderDrawColor(renderer, background.r, background.g, background.b, background.a);
@@ -106,10 +119,11 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 
 				//render piece
 				SDL_Rect pos;
-				pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
-				pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[0]) / 2;
+				pos.x = startingPosx + x * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2;
+				pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2;
 				pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
 				pos.h = squareSize * pieceScale[piece];
+				
 
 				SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
 			}
@@ -117,6 +131,44 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 	}
 
 	
+	if (bPromotionsVisible) {
+		renderButton(lightSquare, 4, 1, 
+			startingPosx + squareSize * 7, 
+			startingPosy - squareSize - 10, 
+			squareSize, squareSize);
+		renderButton(darkSquare, 3, 1,
+			startingPosx + squareSize * 6,
+			startingPosy - squareSize - 10,
+			squareSize, squareSize);
+		renderButton(lightSquare, 2, 1,
+			startingPosx + squareSize * 5,
+			startingPosy - squareSize - 10,
+			squareSize, squareSize);
+		renderButton(darkSquare, 1, 1,
+			startingPosx + squareSize * 4,
+			startingPosy - squareSize - 10,
+			squareSize, squareSize);
+	}
+
+	if (wPromotionsVisible) {
+		renderButton(darkSquare, 4, 0,
+			startingPosx + squareSize * 7,
+			startingPosy + squareSize * 8 + 10,
+			squareSize, squareSize);
+		renderButton(lightSquare, 3, 0,
+			startingPosx + squareSize * 6,
+			startingPosy + squareSize * 8 + 10,
+			squareSize, squareSize);
+		renderButton(darkSquare, 2, 0,
+			startingPosx + squareSize * 5,
+			startingPosy + squareSize * 8 + 10,
+			squareSize, squareSize);
+		renderButton(lightSquare, 1, 0,
+			startingPosx + squareSize * 4,
+			startingPosy + squareSize * 8 + 10,
+			squareSize, squareSize);
+	}
+
 	//render possible positions for the held piece
 	if (pieceHeld != 0) {
 		for (std::vector<int> i : available) {

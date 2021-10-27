@@ -417,21 +417,27 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 }
 
 bool MoveManager::promotePiece(uint8_t promoteTo, bool pieceCol, uint8_t board[][8]) {
+	//white
 	if (!pieceCol) {
+		//find a pawn of that colour on the top rank
 		for (int i = 0; i < WIDTH; i++) {
 			getPiece(i, 0);
 
 			if (colour == pieceCol && piece == 0) {
+				//promote it
 				board[0][i] = promoteTo;
 				return true;
 			}
 		}
 	}
+	//black
 	else {
+		//find a pawn of that colour on the bottom rank
 		for (int i = 0; i < WIDTH; i++) {
 			getPiece(i, 7);
 
 			if (colour == pieceCol && piece == 0) {
+				//promote it
 				board[7][i] = (0b10000000 | promoteTo);
 				return true;
 			}

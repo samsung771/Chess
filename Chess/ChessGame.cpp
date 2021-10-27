@@ -29,7 +29,6 @@ void ChessGame::update() {
 			moveManager.wCheck = player1->check;
 		}
 	}
-
 }
 
 void ChessGame::handleEvents() {
@@ -207,8 +206,8 @@ int ChessGame::Play() {
 	//main game loop
 	while (isRunning) {
 		handleEvents();
-		renderer.renderScreen(board);
 		update();
+		renderer.renderScreen(board);
 	}
 
 	return 0;

@@ -5,7 +5,7 @@
 
 #include "Players.h"
 #include "ChessGame.h"
-
+#include <iostream>
 
 int main(int argc, char* argv[]) {
 	int mousePosX, mousePosY;

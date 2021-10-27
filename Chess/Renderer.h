@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#define windowWIDTH  800
-#define windowHEIGHT 600
+#define windowWIDTH  600
+#define windowHEIGHT 700
 
 #define WIDTH  8
 #define HEIGHT 8
@@ -39,12 +39,13 @@ class Renderer {
 	SDL_Renderer* renderer;
 	SDL_Window* window;
 
+	//draws background to fit screen
+	void drawBackground();
 
 	//draws squares
 	void drawSquare(SDL_Colour colour, int x, int y, int w, int h);
 
-	//draws background to fit screen
-	void drawBackground();
+	void renderButton(SDL_Colour col, int piece, int colour, int x, int y, int w, int h);
 
 public:
 	int squareSize = windowHEIGHT / HEIGHT;
@@ -60,6 +61,10 @@ public:
 
 	std::vector < std::vector<int> > available;
 
+	bool bPromotionsVisible = false;
+	bool wPromotionsVisible = false;
+	
+	void rendererImg(int textIndex, int x, int y, int w, int h);
 
 	//load textures and initialise some variables
 	void init();
