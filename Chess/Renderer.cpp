@@ -134,40 +134,43 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 	if (bPromotionsVisible) {
 		renderButton(lightSquare, 4, 1, 
 			startingPosx + squareSize * 7, 
-			startingPosy - squareSize - 10, 
+			startingPosy + squareSize * 8 + squareSize * 0.2,
 			squareSize, squareSize);
 		renderButton(darkSquare, 3, 1,
 			startingPosx + squareSize * 6,
-			startingPosy - squareSize - 10,
+			startingPosy + squareSize * 8 + squareSize * 0.2,
 			squareSize, squareSize);
 		renderButton(lightSquare, 2, 1,
 			startingPosx + squareSize * 5,
-			startingPosy - squareSize - 10,
+			startingPosy + squareSize * 8 + squareSize * 0.2,
 			squareSize, squareSize);
 		renderButton(darkSquare, 1, 1,
 			startingPosx + squareSize * 4,
-			startingPosy - squareSize - 10,
+			startingPosy + squareSize * 8 + squareSize * 0.2,
 			squareSize, squareSize);
 	}
-
+	
 	if (wPromotionsVisible) {
 		renderButton(darkSquare, 4, 0,
 			startingPosx + squareSize * 7,
-			startingPosy + squareSize * 8 + 10,
+			startingPosy - squareSize - squareSize * 0.2,
 			squareSize, squareSize);
 		renderButton(lightSquare, 3, 0,
 			startingPosx + squareSize * 6,
-			startingPosy + squareSize * 8 + 10,
+			startingPosy - squareSize - squareSize * 0.2,
 			squareSize, squareSize);
 		renderButton(darkSquare, 2, 0,
 			startingPosx + squareSize * 5,
-			startingPosy + squareSize * 8 + 10,
+			startingPosy - squareSize - squareSize * 0.2,
 			squareSize, squareSize);
 		renderButton(lightSquare, 1, 0,
 			startingPosx + squareSize * 4,
-			startingPosy + squareSize * 8 + 10,
+			startingPosy - squareSize - squareSize*0.2,
 			squareSize, squareSize);
 	}
+
+	renderTimer(0);
+	renderTimer(1);
 
 	//render possible positions for the held piece
 	if (pieceHeld != 0) {
@@ -211,4 +214,109 @@ int Renderer::getStartPosX() {
 
 int Renderer::getStartPosY() {
 	return startingPosy;
+}
+
+void Renderer::drawMatrix(bool matrix[9][6], int xStart, int yStart, int w, int h, SDL_Colour col) {
+	int pixelSizeX = floor(w / 6);
+	int pixelSizeY = floor(h / 9);
+
+	for (int y = 0; y < 9; y++) {
+		for (int x = 0; x < 6; x++) {
+			if (matrix[y][x]) {
+				drawSquare(col,
+					xStart + x * pixelSizeX,
+					yStart + y * pixelSizeY,
+					pixelSizeX, pixelSizeY);
+			}
+		}
+	}
+}
+
+void Renderer::drawNumber(int number, int xStart, int yStart, int w, int h, SDL_Colour col) {
+	//make sure num is 1 digit
+	int num = number % 10;
+	switch (num) {
+	case 0:
+		drawMatrix(zero, xStart, yStart, w, h, col);
+		break;
+	case 1:
+		drawMatrix(one, xStart, yStart, w, h, col);
+		break;
+	case 2:
+		drawMatrix(two, xStart, yStart, w, h, col);
+		break;
+	case 3:
+		drawMatrix(three, xStart, yStart, w, h, col);
+		break;
+	case 4:
+		drawMatrix(four, xStart, yStart, w, h, col);
+		break;
+	case 5:
+		drawMatrix(five, xStart, yStart, w, h, col);
+		break;
+	case 6:
+		drawMatrix(six, xStart, yStart, w, h, col);
+		break;
+	case 7:
+		drawMatrix(seven, xStart, yStart, w, h, col);
+		break;
+	case 8:
+		drawMatrix(eight, xStart, yStart, w, h, col);
+		break;
+	case 9:
+		drawMatrix(nine, xStart, yStart, w, h, col);
+		break;
+	default:
+		break;
+	}
+}
+
+void Renderer::renderTimer(bool colour) {
+	int timer = 0;
+	int y = 0;
+	if (colour) {
+		timer = bTimer;
+		y = startingPosy - squareSize - squareSize * 0.1;
+	}
+	else {
+		timer = wTimer;
+		y = startingPosy + squareSize * 8 + squareSize * 0.3;
+	}
+
+	int numy = y + squareSize * 0.175;
+
+	drawSquare(darkSquare, startingPosx, y, squareSize * 2.2, squareSize * 0.8);
+	
+	int display[4] = { 0,0,0,0 };
+
+	int mins = floor(timer / 60);
+	int secs = timer % 60;
+
+	if (mins >= 10) {
+		display[0] = floor(mins / 10);
+		display[1] = mins % 10;
+	}
+	else {
+		display[1] = mins;
+	}
+
+	if (secs >= 10) {
+		display[2] = floor(secs / 10);
+		display[3] = secs % 10;
+	}
+	else {
+		display[3] = secs;
+	}
+
+	int space = 0;
+
+	for (int i = 0; i < 4; i++) {
+		if (i % 2 == 0)
+			space = squareSize * 0.25;
+		else
+			space = squareSize * 0.1;
+		drawNumber(display[i], startingPosx + i * (squareSize * 0.5) + space, numy, squareSize * 0.3, squareSize * 0.5, lightSquare);
+	}
+
+	drawMatrix(colon, startingPosx + squareSize*0.95, numy, squareSize * 0.3, squareSize * 0.5, lightSquare);//startingPosx + 2.5 * (squareSize * 0.4 + squareSize * 0.1) + space, numy, squareSize * 0.3, squareSize * 0.5, lightSquare);
 }

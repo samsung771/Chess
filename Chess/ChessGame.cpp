@@ -207,7 +207,25 @@ int ChessGame::Play() {
 	while (isRunning) {
 		handleEvents();
 		update();
-		renderer.renderScreen(board);
+
+		current = std::chrono::steady_clock::now();
+
+		SDL_Delay(1);
+
+		if (std::chrono::duration_cast<std::chrono::milliseconds> (current - lastCheckFrame).count() > 1000 / FRAMECAP) {
+			renderer.renderScreen(board);
+			lastCheckFrame = current;
+		}
+
+		if (std::chrono::duration_cast<std::chrono::milliseconds> (current - lastCheckSecond).count() > 1000) {
+			if (isWhiteTurn) {
+				renderer.wTimer--;
+			}
+			else {
+				renderer.bTimer--;
+			}
+			lastCheckSecond = current;
+		}
 	}
 
 	return 0;

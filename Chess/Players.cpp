@@ -82,9 +82,9 @@ bool Human::update() {
 			if (chessGamePtr->renderer.bPromotionsVisible) {
 				//checks if clicked in queen button
 				if (*mousePosX > chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 7 &&
-					*mousePosY > chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - 10 &&
+					*mousePosY > chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + squareSize * 0.2 &&
 					*mousePosX < chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 7 + chessGamePtr->renderer.squareSize &&
-					*mousePosY < chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - 10 + chessGamePtr->renderer.squareSize)
+					*mousePosY < chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + squareSize * 0.2 + chessGamePtr->renderer.squareSize)
 				{
 					//promotes to queen
 					chessGamePtr->moveManager.promotePiece(QUEEN, colour, chessGamePtr->board);
@@ -94,9 +94,9 @@ bool Human::update() {
 				}
 				//same for rook
 				else if (*mousePosX > chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 6 &&
-					*mousePosY > chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - 10 &&
+					*mousePosY > chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + squareSize * 0.2 &&
 					*mousePosX < chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 6 + chessGamePtr->renderer.squareSize &&
-					*mousePosY < chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - 10 + chessGamePtr->renderer.squareSize)
+					*mousePosY < chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + squareSize * 0.2 + chessGamePtr->renderer.squareSize)
 				{
 					chessGamePtr->moveManager.promotePiece(ROOK, colour, chessGamePtr->board);
 					chessGamePtr->renderer.bPromotionsVisible = 0;
@@ -104,9 +104,9 @@ bool Human::update() {
 				}
 				//same for bishop
 				else if (*mousePosX > chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 5 &&
-					*mousePosY > chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - 10 &&
+					*mousePosY > chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 &&
 					*mousePosX < chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 5 + chessGamePtr->renderer.squareSize &&
-					*mousePosY < chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - 10 + chessGamePtr->renderer.squareSize)
+					*mousePosY < chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 + chessGamePtr->renderer.squareSize)
 				{
 					chessGamePtr->moveManager.promotePiece(BISHOP, colour, chessGamePtr->board);
 					chessGamePtr->renderer.bPromotionsVisible = 0;
@@ -114,9 +114,9 @@ bool Human::update() {
 				}
 				//same for knight
 				else if (*mousePosX > chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 4 &&
-					*mousePosY > chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - 10 &&
+					*mousePosY > chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + squareSize * 0.2 &&
 					*mousePosX < chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 4 + chessGamePtr->renderer.squareSize &&
-					*mousePosY < chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - 10 + chessGamePtr->renderer.squareSize)
+					*mousePosY < chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + squareSize * 0.2 + chessGamePtr->renderer.squareSize)
 				{
 					chessGamePtr->moveManager.promotePiece(KNIGHT, colour, chessGamePtr->board);
 					chessGamePtr->renderer.bPromotionsVisible = 0;
@@ -128,9 +128,9 @@ bool Human::update() {
 			else if (chessGamePtr->renderer.wPromotionsVisible) {
 				//if clicked on queen button
 				if (*mousePosX > chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 7 &&
-					*mousePosY > chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 &&
+					*mousePosY > chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - squareSize * 0.2 &&
 					*mousePosX < chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 7 + chessGamePtr->renderer.squareSize &&
-					*mousePosY < chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 + chessGamePtr->renderer.squareSize)
+					*mousePosY < chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - squareSize * 0.2 + chessGamePtr->renderer.squareSize)
 				{
 					//promote pawn to queen
 					chessGamePtr->moveManager.promotePiece(QUEEN, colour, chessGamePtr->board);
@@ -140,9 +140,9 @@ bool Human::update() {
 				}
 				//same for rook
 				else if (*mousePosX > chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 6 &&
-					*mousePosY > chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 &&
+					*mousePosY > chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - squareSize * 0.2 &&
 					*mousePosX < chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 6 + chessGamePtr->renderer.squareSize &&
-					*mousePosY < chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 + chessGamePtr->renderer.squareSize)
+					*mousePosY < chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - squareSize * 0.2 + chessGamePtr->renderer.squareSize)
 				{
 					chessGamePtr->moveManager.promotePiece(ROOK, colour, chessGamePtr->board);
 					chessGamePtr->renderer.wPromotionsVisible = 0;
@@ -150,9 +150,9 @@ bool Human::update() {
 				}
 				//same for bishop
 				else if (*mousePosX > chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 5 &&
-					*mousePosY > chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 &&
+					*mousePosY > chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - squareSize * 0.2 &&
 					*mousePosX < chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 5 + chessGamePtr->renderer.squareSize &&
-					*mousePosY < chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 + chessGamePtr->renderer.squareSize)
+					*mousePosY < chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - squareSize * 0.2 + chessGamePtr->renderer.squareSize)
 				{
 					chessGamePtr->moveManager.promotePiece(BISHOP, colour, chessGamePtr->board);
 					chessGamePtr->renderer.wPromotionsVisible = 0;
@@ -160,15 +160,14 @@ bool Human::update() {
 				}
 				//same for knight
 				else if (*mousePosX > chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 4 &&
-					*mousePosY > chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 &&
+					*mousePosY > chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - squareSize * 0.2 &&
 					*mousePosX < chessGamePtr->renderer.startingPosx + chessGamePtr->renderer.squareSize * 4 + chessGamePtr->renderer.squareSize &&
-					*mousePosY < chessGamePtr->renderer.startingPosy + chessGamePtr->renderer.squareSize * 8 + 10 + chessGamePtr->renderer.squareSize)
+					*mousePosY < chessGamePtr->renderer.startingPosy - chessGamePtr->renderer.squareSize - squareSize * 0.2 + chessGamePtr->renderer.squareSize)
 				{
 					chessGamePtr->moveManager.promotePiece(KNIGHT, colour, chessGamePtr->board);
 					chessGamePtr->renderer.wPromotionsVisible = 0;
 					return true;
 				}
-
 			}
 		}
 		

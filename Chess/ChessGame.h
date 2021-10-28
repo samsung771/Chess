@@ -7,7 +7,7 @@
 #include <windows.h>
 #include <string>
 #include <vector>
-#include <iostream>
+#include <chrono>
 
 
 #define WIDTH  8
@@ -24,6 +24,7 @@
 #define QUEEN	   0b00010000
 #define KING	   0b00100000
 
+#define FRAMECAP   30
 
 //macro to get the piece from its binary representation
 #define getPiece(x,y)\
@@ -47,6 +48,10 @@ private:
 
 	//handle SDL window events e.g. key presses
 	void handleEvents();
+
+	std::chrono::steady_clock::time_point lastCheckFrame = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::time_point lastCheckSecond = std::chrono::steady_clock::now();
+	std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
 
 public:
 	//public game variables
