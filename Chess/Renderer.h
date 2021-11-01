@@ -28,6 +28,7 @@ class MoveManager;
 class Renderer {
 	//rendering variables
 	SDL_Texture* texture[12] = { NULL };
+	SDL_Texture* msgs[4] = { NULL };
 	const SDL_Colour background{ 83, 94, 93, 255 };
 	const SDL_Colour darkSquare{ 49, 51, 51, 255 };
 	const SDL_Colour lightSquare{ 225, 235, 234, 255 };
@@ -185,6 +186,7 @@ public:
 	uint8_t pieceHeld;
 	int pieceHeldX, pieceHeldY = 0;
 	
+	int state = 0;
 
 	int bTimer = TIMELIMIT;
 	int wTimer = TIMELIMIT;

@@ -13,6 +13,27 @@ void ChessGame::update() {
 
 			moveManager.bCheck = player2->check;
 			moveManager.wCheck = player1->check;
+
+			if (moveManager.getAllLegalMoves(0, board).size() == 0) {
+				//checkmate
+				if (player2->check) {
+					renderer.state = 1;
+				}
+				//satlemate
+				else {
+					renderer.state = 3;
+				}
+			}
+			else if (moveManager.getAllLegalMoves(1, board).size() == 0) {
+				//checkmate
+				if (player1->check) {
+					renderer.state = 2;
+				}
+				//stalemate
+				else {
+					renderer.state = 3;
+				}
+			}
 		}
 	}
 	else {
@@ -27,8 +48,31 @@ void ChessGame::update() {
 
 			moveManager.bCheck = player2->check;
 			moveManager.wCheck = player1->check;
+
+			if (moveManager.getAllLegalMoves(0, board).size() == 0) {
+				//checkmate
+				if (player2->check) {
+					renderer.state = 1;
+				}
+				//satlemate
+				else {
+					renderer.state = 3;
+				}
+			}
+			else if (moveManager.getAllLegalMoves(1, board).size() == 0) {
+				//checkmate
+				if (player1->check) {
+					renderer.state = 2;
+				}
+				//stalemate
+				else {
+					renderer.state = 3;
+				}
+			}
 		}
 	}
+	
+	
 }
 
 void ChessGame::handleEvents() {
@@ -206,7 +250,12 @@ int ChessGame::Play() {
 	//main game loop
 	while (isRunning) {
 		handleEvents();
-		update();
+
+		if (renderer.state == 0)
+			update();
+
+		else if (std::chrono::duration_cast<std::chrono::milliseconds> (current - lastCheckSecond).count() > 10000)
+			break;
 
 		current = std::chrono::steady_clock::now();
 
@@ -217,15 +266,22 @@ int ChessGame::Play() {
 			lastCheckFrame = current;
 		}
 
-		if (std::chrono::duration_cast<std::chrono::milliseconds> (current - lastCheckSecond).count() > 1000) {
-			if (isWhiteTurn) {
-				renderer.wTimer--;
+		if (renderer.state == 0) {
+			if (std::chrono::duration_cast<std::chrono::milliseconds> (current - lastCheckSecond).count() > 1000) {
+				if (isWhiteTurn) {
+					renderer.wTimer--;
+				}
+				else {
+					renderer.bTimer--;
+				}
+				lastCheckSecond = current;
 			}
-			else {
-				renderer.bTimer--;
-			}
-			lastCheckSecond = current;
 		}
+
+		if (renderer.wTimer <= 0)
+			renderer.state = 2;
+		else if (renderer.bTimer <= 0)
+			renderer.state = 1;
 	}
 
 	return 0;

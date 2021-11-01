@@ -73,6 +73,22 @@ void Renderer::init() {
 		texture[i] = SDL_CreateTextureFromSurface(renderer, temp);
 	}
 
+	temp = SDL_LoadBMP("staleMate.bmp");
+
+	msgs[3] = SDL_CreateTextureFromSurface(renderer, temp);
+
+	temp = SDL_LoadBMP("whiteWins.bmp");
+
+	msgs[2] = SDL_CreateTextureFromSurface(renderer, temp);
+
+	temp = SDL_LoadBMP("blackWins.bmp");
+
+	msgs[1] = SDL_CreateTextureFromSurface(renderer, temp);
+
+	temp = SDL_LoadBMP("playAgain.bmp");
+
+	msgs[0] = SDL_CreateTextureFromSurface(renderer, temp);
+
 	//delete temporary files
 	SDL_FreeSurface(temp);
 }
@@ -199,6 +215,29 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 		SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
 	}
 	
+	if (state != 0) {
+		//render piece
+		SDL_Rect rect;
+		rect.x = w / 2 - 100;
+		rect.y = h / 2 - 75;
+		rect.w = 200;
+		rect.h = 100;
+
+		SDL_SetRenderDrawColor(renderer, darkSquare.r, darkSquare.g, darkSquare.b, darkSquare.a);
+
+		SDL_RenderFillRect(renderer, &rect);
+
+		if (state == 1) {
+			SDL_RenderCopy(renderer, msgs[1], NULL, &rect);
+		}
+		else if (state == 2) {
+			SDL_RenderCopy(renderer, msgs[2], NULL, &rect);
+
+		}
+		else if (state == 3) {
+			SDL_RenderCopy(renderer, msgs[3], NULL, &rect);
+		}
+	}
 
 	//show render
 	SDL_RenderPresent(renderer);
@@ -286,7 +325,7 @@ void Renderer::renderTimer(bool colour) {
 	int numy = y + squareSize * 0.175;
 
 	drawSquare(darkSquare, startingPosx, y, squareSize * 2.2, squareSize * 0.8);
-	
+
 	int display[4] = { 0,0,0,0 };
 
 	int mins = floor(timer / 60);
@@ -317,6 +356,6 @@ void Renderer::renderTimer(bool colour) {
 			space = squareSize * 0.1;
 		drawNumber(display[i], startingPosx + i * (squareSize * 0.5) + space, numy, squareSize * 0.3, squareSize * 0.5, lightSquare);
 	}
-
-	drawMatrix(colon, startingPosx + squareSize*0.95, numy, squareSize * 0.3, squareSize * 0.5, lightSquare);//startingPosx + 2.5 * (squareSize * 0.4 + squareSize * 0.1) + space, numy, squareSize * 0.3, squareSize * 0.5, lightSquare);
+	
+	drawMatrix(colon, startingPosx + squareSize * 0.95, numy, squareSize * 0.3, squareSize * 0.5, lightSquare);
 }
