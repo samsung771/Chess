@@ -7,6 +7,8 @@
 #include "ChessGame.h"
 #include <stdlib.h>
 #include <time.h>  
+#include <iostream>
+#include "BoardMagnet.h"
 
 
 class ChessGame;
@@ -43,5 +45,37 @@ public:
 };
 
 class RandAI : public Player {
+public:
 	bool update();
 };
+
+class MagnetPlayer : public Player {
+private:
+	BoardMagnetController magnetControl;
+public:
+	//original pos of piece
+	int pieceHeldX, pieceHeldY = 0;
+	//piece representation
+	uint8_t pieceHeld = 0;
+
+
+	MagnetPlayer();
+
+	bool update();
+};
+
+/*
+class MiniMaxAI : public Player {
+private:
+	struct position {
+
+	};
+
+	int minimax(uint8_t board[8][8], int depth, bool maxPlayer, bool player, int alpha, int beta);
+
+	int staticEval(uint8_t board[8][8]);
+
+public:
+	bool update();
+};
+*/

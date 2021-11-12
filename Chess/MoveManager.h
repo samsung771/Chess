@@ -58,7 +58,7 @@ class MoveManager {
 		{0,1}
 	};
 	//game variables
-	uint8_t enPassent[16] = { 0 };
+	int enPassent[2] = {0};
 
 
 	//casts a line with a certain vector until it hits a piece

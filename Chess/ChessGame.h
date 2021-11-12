@@ -39,8 +39,6 @@ class RandAI;
 class ChessGame {
 private:
 	bool isRunning = true;
-	Player* player1;
-	Player* player2;
 
 	//update board
 	void update();
@@ -58,6 +56,9 @@ public:
 	uint8_t board[8][8] = { {0} };
 	bool isWhiteTurn = 1;
 	int move = 0;
+
+	Player* player1;
+	Player* player2;
 
 	//mouse variables
 	int* mousePosX;

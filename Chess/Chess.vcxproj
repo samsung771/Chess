@@ -151,17 +151,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BoardMagnet.cpp" />
+    <ClCompile Include="BoardMovement.cpp" />
     <ClCompile Include="ChessGame.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MoveManager.cpp" />
+    <ClCompile Include="Pathfinding.cpp" />
     <ClCompile Include="Players.cpp" />
     <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="Serial.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoardMagnet.h" />
+    <ClInclude Include="BoardMovement.h" />
     <ClInclude Include="ChessGame.h" />
     <ClInclude Include="MoveManager.h" />
+    <ClInclude Include="Pathfinding.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Players.h" />
+    <ClInclude Include="Serial.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

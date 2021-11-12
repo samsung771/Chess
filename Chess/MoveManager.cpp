@@ -309,6 +309,8 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 				//check if the move is allowed
 				for (std::vector<int> i : available) {
 					if (i[0] == squareX && i[1] == squareY) {
+						enPassent[0] = -1;
+						enPassent[1] = -1;
 						board[squareY][squareX] = pieceHeld;
 						board[pieceHeldY][pieceHeldX] = 0;
 						pieceHeld = 0;
@@ -331,14 +333,6 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 								enPassent[squareX + 8] = squareY - 1;
 							else if (squareY - pieceHeldY == -2)
 								enPassent[squareX] = squareY + 1;
-							else if (((board[squareY][squareX] & COLOURMASK) >> 7)) {
-								enPassent[squareX + 8] = 0;
-								enPassent[pieceHeldX + 8] = 0;
-							}
-							else {
-								enPassent[squareX] = 0;
-								enPassent[pieceHeldX] = 0;
-							}
 
 
 							//en passent capture

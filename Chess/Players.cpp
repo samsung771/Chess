@@ -205,3 +205,187 @@ bool RandAI::update() {
 
 	return false;
 }
+
+MagnetPlayer::MagnetPlayer() {
+
+}
+
+bool MagnetPlayer::update() {
+	char move = magnetControl.update();
+
+	if (move) {
+		move += 8;
+		if (pieceHeld == 0) {
+			pieceHeld = chessGamePtr->board[move % 8][move >> 3];
+			pieceHeldX = move >> 3;
+			pieceHeldY = move % 8;
+		}
+		
+		else {
+			int returnVal = chessGamePtr->moveManager.makeMove(
+				pieceHeldX, 
+				pieceHeldY, 
+				move >> 3, 
+				move % 8, 
+				pieceHeld, 
+				chessGamePtr->board
+			);
+
+			if (returnVal == 1) {
+				pieceHeld = 0;
+				chessGamePtr->renderer.pieceHeld = pieceHeld;
+				return true;
+			}
+
+		}
+	}
+
+	chessGamePtr->renderer.pieceHeld = pieceHeld;
+	chessGamePtr->renderer.pieceHeldX = pieceHeldX;
+	chessGamePtr->renderer.pieceHeldY = pieceHeldY;
+
+	chessGamePtr->renderer.available = chessGamePtr->moveManager.legalMoves(
+		pieceHeldX,
+		pieceHeldY,
+		pieceHeld,
+		chessGamePtr->board,
+		colour);
+
+	return false;
+}
+
+/*
+int minimaxCalls = 0;
+
+int MiniMaxAI::minimax(uint8_t board[8][8], int depth, bool maxPlayer, bool player, int alpha, int beta) {
+	minimaxCalls++;
+
+	if (chessGamePtr->moveManager.getAllLegalMoves(0, board).size() == 0) {
+		//checkmate
+		if (chessGamePtr->moveManager.checkCheck(board,0)) {
+			return -9999999999;
+		}
+		//stlemate
+		else {
+			return 0;
+		}
+	}
+	else if (chessGamePtr->moveManager.getAllLegalMoves(1, board).size() == 0) {
+		//checkmate
+		if (chessGamePtr->moveManager.checkCheck(board, 1)) {
+			return 9999999999;
+		}
+		//stalemate
+		else {
+			return 0;
+		}
+	}
+	
+	if (depth <= 0)
+		return staticEval(board);
+
+	if (maxPlayer) {
+		int bestScore = -99999;
+
+		for (std::vector<int> i : chessGamePtr->moveManager.getAllLegalMoves(player, board)) {
+			//copies board
+			uint8_t newBoard[8][8];
+
+			//copies board
+			for (int x = 0; x < WIDTH; x++) {
+				for (int y = 0; y < HEIGHT; y++) {
+					newBoard[y][x] = board[y][x];
+				}
+			}
+
+			chessGamePtr->moveManager.makeMove(i[0], i[1], i[2], i[3], newBoard[i[1]][i[0]], newBoard);
+			
+			int score;
+
+			score = minimax(board, depth - 1, false, !player, alpha, beta);
+
+			bestScore = score > bestScore ? score : bestScore;
+
+			alpha = score > alpha ? score : alpha;
+
+			if (beta <= alpha) {
+				break;
+			}
+		}
+		return bestScore;
+	}
+	else {
+		int bestScore = 99999;
+
+		for (std::vector<int> i : chessGamePtr->moveManager.getAllLegalMoves(player, board)) {
+			//copies board
+			uint8_t newBoard[8][8];
+
+			//copies board
+			for (int x = 0; x < WIDTH; x++) {
+				for (int y = 0; y < HEIGHT; y++) {
+					newBoard[y][x] = board[y][x];
+				}
+			}
+
+			newBoard[i[3]][i[2]] = newBoard[i[1]][i[0]];
+			newBoard[i[1]][i[0]] = 0;
+			
+			int score;
+
+			score = minimax(board, depth - 1, true, !player, alpha, beta);
+
+			bestScore = score > bestScore ? score : bestScore;
+
+			beta = score < beta ? score : beta;
+
+			if (beta <= alpha) {
+				break;
+			}
+		}
+		return bestScore;
+	}
+}
+
+int MiniMaxAI::staticEval(uint8_t board[8][8]) {
+	int rnd = (rand() % 100) + 1;
+
+	return rnd;
+}
+
+bool MiniMaxAI::update() {
+	srand(time(NULL));
+
+	int bestScore = -99999;
+	std::vector<int> bestMove;
+
+	minimaxCalls = 0;
+
+
+	for (std::vector<int> i : chessGamePtr->moveManager.getAllLegalMoves(colour, chessGamePtr->board)) {
+		//copies board
+		uint8_t newBoard[8][8];
+
+		//copies board
+		for (int x = 0; x < WIDTH; x++) {
+			for (int y = 0; y < HEIGHT; y++) {
+				newBoard[y][x] = chessGamePtr->board[y][x];
+			}
+		}
+
+		newBoard[i[3]][i[2]] = newBoard[i[1]][i[0]];
+		newBoard[i[1]][i[0]] = 0;
+
+		int score = minimax(newBoard, 5, false, colour, -99999, 99999);
+
+		if (score > bestScore) {
+			bestScore = score;
+			bestMove = i;
+		}
+	}
+
+	std::cout << minimaxCalls << "\n";
+
+	return chessGamePtr->moveManager.makeMove(bestMove[0], bestMove[1], bestMove[2], bestMove[3], chessGamePtr->board[bestMove[1]][bestMove[0]], chessGamePtr->board);
+}
+*/
