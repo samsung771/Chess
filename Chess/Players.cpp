@@ -62,7 +62,6 @@ bool Human::update() {
 				}
 			}
 
-
 			chessGamePtr->renderer.pieceHeld = pieceHeld;
 			chessGamePtr->renderer.pieceHeldX = pieceHeldX;
 			chessGamePtr->renderer.pieceHeldY = pieceHeldY;
@@ -206,27 +205,24 @@ bool RandAI::update() {
 	return false;
 }
 
-MagnetPlayer::MagnetPlayer() {
-
-}
 
 bool MagnetPlayer::update() {
 	char move = magnetControl.update();
 
 	if (move) {
-		move += 8;
+		move -= 1;
 		if (pieceHeld == 0) {
-			pieceHeld = chessGamePtr->board[move % 8][move >> 3];
-			pieceHeldX = move >> 3;
-			pieceHeldY = move % 8;
+			pieceHeld = chessGamePtr->board[move >> 3][move % 8];
+			pieceHeldX = move % 8;
+			pieceHeldY = move >> 3;
 		}
 		
 		else {
 			int returnVal = chessGamePtr->moveManager.makeMove(
 				pieceHeldX, 
 				pieceHeldY, 
+				move % 8,
 				move >> 3, 
-				move % 8, 
 				pieceHeld, 
 				chessGamePtr->board
 			);
