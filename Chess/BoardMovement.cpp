@@ -1,8 +1,6 @@
 #include "BoardMovement.h"
 
-BoardMoveController::BoardMoveController() {
-    serialControl.init("COM3");
-
+void BoardMoveController::genVectorBoard() {
     for (int y = 0; y < 17; y++) {
         std::vector<node> temp;
         for (int x = 0; x < 15; x++) {
@@ -20,10 +18,15 @@ BoardMoveController::BoardMoveController() {
         }
         boardGrid.push_back(temp);
     }
+}
+
+BoardMoveController::BoardMoveController() {
+    serialControl.init("COM3");
+
+    genVectorBoard();
 
     deactivateMagnet();
     home();
-    movePiece(0, 0, 7, 7);
 }
 
 void BoardMoveController::movePiece(int startingSqX, int startingSqY, int endingSqX, int endingSqY) {

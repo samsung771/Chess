@@ -47,7 +47,7 @@ bool Human::update() {
 
 				else {
 					int returnVal = chessGamePtr->moveManager.makeMove(pieceHeldX, pieceHeldY, squareX, squareY, pieceHeld, chessGamePtr->board);
-					if (returnVal == 1) {
+					if (returnVal == 1 | returnVal == 3) {
 						pieceHeld = 0;
 						chessGamePtr->renderer.pieceHeld = pieceHeld;
 						return true;
@@ -191,7 +191,7 @@ bool RandAI::update() {
 			chessGamePtr->board[available[random][1]][available[random][0]],
 			chessGamePtr->board);
 
-		if (returnVal == 1) return true;
+		if (returnVal == 1 | returnVal == 3) return true;
 
 		else if (returnVal == 2) {
 			int random = (rand() % 4) + 1;
@@ -227,7 +227,7 @@ bool MagnetPlayer::update() {
 				chessGamePtr->board
 			);
 
-			if (returnVal == 1) {
+			if (returnVal == 1 | returnVal == 3) {
 				pieceHeld = 0;
 				chessGamePtr->renderer.pieceHeld = pieceHeld;
 				return true;
@@ -246,6 +246,60 @@ bool MagnetPlayer::update() {
 		pieceHeld,
 		chessGamePtr->board,
 		colour);
+
+	return false;
+}
+
+
+bool BoardPlayerRand::update() {
+	for (int y = 0; y < 8; y++)
+		for (int x = 0; x < 8; x++) {
+			movementController.board[y][x] = chessGamePtr->board[y][x];
+		}
+	movementController.genVectorBoard();
+
+	std::vector<std::vector<int>> available = chessGamePtr->moveManager.getAllLegalMoves(colour, chessGamePtr->board);
+
+	srand(time(NULL));
+	int random = rand() % available.size();
+
+	if (available.size() > 0) {
+		int returnVal = chessGamePtr->moveManager.makeMove(available[random][0],
+			available[random][1],
+			available[random][2],
+			available[random][3],
+			chessGamePtr->board[available[random][1]][available[random][0]],
+			chessGamePtr->board);
+
+		if (returnVal == 1) {
+			movementController.movePiece(available[random][0],
+				available[random][1],
+				available[random][2],
+				available[random][3]);
+			movementController.moveToSquare(4, 4);
+			return true;
+		}
+
+		else if (returnVal == 3) {
+
+			//capture function
+
+			return true;
+		}
+
+		else if (returnVal == 2) {
+			int random = (rand() % 4) + 1;
+			uint8_t piece = 0;
+			piece = pow(2, random);
+			chessGamePtr->moveManager.promotePiece(piece, colour, chessGamePtr->board);
+			
+			
+			//promotion function
+
+
+			return true;
+		}
+	}
 
 	return false;
 }

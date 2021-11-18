@@ -9,6 +9,7 @@
 #include <time.h>  
 #include <iostream>
 #include "BoardMagnet.h"
+#include "BoardMovement.h"
 
 
 class ChessGame;
@@ -58,6 +59,13 @@ public:
 	//piece representation
 	uint8_t pieceHeld = 0;
 
+	bool update();
+};
+
+class BoardPlayerRand : public Player {
+private:
+	BoardMoveController movementController;
+public:
 	bool update();
 };
 

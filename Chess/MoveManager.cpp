@@ -291,6 +291,7 @@ bool MoveManager::checkCheck(uint8_t board[][8], bool colour) {
 
 int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[][8]) {
 	int validMove = 0;
+	int capture = 0;
 
 	//checks square is within play space
 	if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
@@ -367,7 +368,6 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 				}
 			}
 		}
-
 		//capture piece
 		else if (board[squareY][squareX] != 0 && pieceHeld != 0) {
 			//checks for available moves
@@ -376,6 +376,7 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 					//place piece
 					board[squareY][squareX] = pieceHeld;
 					board[pieceHeldY][pieceHeldX] = 0;
+					capture++;
 
 					//removes en passent capture if the pawn is captured
 					if ((board[squareY][squareX] & PIECEMASK) == PAWN) {
@@ -403,8 +404,9 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 			}
 		}
 	}
-
-	if (validMove > 0)
+	if (capture > 0)
+		return 3;
+	else if (validMove > 0)
 		return 1;
 	else
 		return 0;

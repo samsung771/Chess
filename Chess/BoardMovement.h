@@ -13,6 +13,8 @@ public:
 
     char board[8][8] = { 0 };
 
+    void genVectorBoard();
+
     void home();
 
     void activateMagnet();
