@@ -39,6 +39,7 @@ class RandAI;
 class ChessGame {
 private:
 	bool isRunning = true;
+	bool mouseDown = false;
 
 	//update board
 	void update();

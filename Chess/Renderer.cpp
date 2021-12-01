@@ -53,7 +53,7 @@ void Renderer::init() {
 	//files for bmp
 	char files[12][12] = {
 	   "pawn.bmp",
-	   "knight.bmp",
+	   "knightw.bmp",
 	   "bishop.bmp",
 	   "rook.bmp",
 	   "queen.bmp",

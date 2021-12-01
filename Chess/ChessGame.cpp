@@ -71,8 +71,6 @@ void ChessGame::update() {
 			}
 		}
 	}
-	
-	
 }
 
 void ChessGame::handleEvents() {
@@ -80,6 +78,8 @@ void ChessGame::handleEvents() {
 
 	//get events
 	SDL_PollEvent(&event);
+	
+	*mouseClick = false;
 
 	switch (event.type)
 	{
@@ -113,7 +113,15 @@ void ChessGame::handleEvents() {
 
 		//get mouse click
 		case SDL_MOUSEBUTTONDOWN:
-			*mouseClick = true;
+			if (!mouseDown) {
+				mouseDown = true;
+				*mouseClick = true;
+			}
+			break;
+
+
+		case SDL_MOUSEBUTTONUP:
+			mouseDown = false;
 			break;
 	};
 }

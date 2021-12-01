@@ -170,7 +170,7 @@ bool Human::update() {
 			}
 		}
 		
-		*mouseClick = false;
+		//*mouseClick = false;
 	}
 
 	return false;
