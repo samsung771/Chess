@@ -13,9 +13,9 @@ int main(int argc, char* argv[]) {
 
 	Human player1(&mousePosX, &mousePosY, &mouseClick);
 	//Human player2(&mousePosX, &mousePosY, &mouseClick);
-	RandAI player2;
+	//RandAI player2;
 	//MagnetPlayer player1;
-	//BoardPlayerRand player2;
+	BoardPlayerRand player2;
 
 	player1.colour = 0;
 	player2.colour = 1;
