@@ -51,8 +51,9 @@ void Renderer::init() {
 	SDL_Surface* temp = NULL;
 
 	//files for bmp
-	char files[12][12] = {
+	char files[13][12] = {
 	   "pawn.bmp",
+	   "",
 	   "knight.bmp",
 	   "bishop.bmp",
 	   "rook.bmp",
@@ -67,10 +68,12 @@ void Renderer::init() {
 	};
 
 	//load textures
-	for (int i = 0; i < 12; i++) {
+	for (int i = 0; i < 13; i++) {
 		temp = SDL_LoadBMP(files[i]);
 
 		texture[i] = SDL_CreateTextureFromSurface(renderer, temp);
+
+		std::cout << files[i] << '\n' << SDL_GetError() << '\n' << texture[i] << '\n';
 	}
 
 	temp = SDL_LoadBMP("staleMate.bmp");
@@ -102,7 +105,8 @@ void Renderer::renderButton(SDL_Colour col, int piece, int colour, int x, int y,
 	pos.y = y + squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2;
 	pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
 	pos.h = squareSize * pieceScale[piece];
-
+	if ((piece + colour * 6) != 0) 
+		piece++;
 	SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
 }
 
@@ -139,9 +143,10 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 				pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2;
 				pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
 				pos.h = squareSize * pieceScale[piece];
-				
-
-				SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
+				if ((piece + colour * 6) != 0)
+					piece++;
+				if (SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos) < 0)
+					std::cout << piece + colour * 6 << '\n' << texture[piece + colour * 6] << '\n' << SDL_GetError() << '\n';
 			}
 		}
 	}
@@ -211,7 +216,8 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 		rect.y = *mousePosY - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
 		rect.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
 		rect.h = squareSize * pieceScale[piece];
-
+		if ((piece + colour * 6) != 0)
+			piece++;
 		SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
 	}
 	

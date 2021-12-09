@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <string>
 #include <vector>
+#include <iostream>
 
 #define windowWIDTH  600
 #define windowHEIGHT 700
@@ -27,7 +28,7 @@ class MoveManager;
 
 class Renderer {
 	//rendering variables
-	SDL_Texture* texture[12] = { NULL };
+	SDL_Texture* texture[13] = { NULL };
 	SDL_Texture* msgs[4] = { NULL };
 	const SDL_Colour background{ 83, 94, 93, 255 };
 	const SDL_Colour darkSquare{ 49, 51, 51, 255 };
