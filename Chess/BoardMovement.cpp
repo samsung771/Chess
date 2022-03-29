@@ -314,14 +314,17 @@ void BoardMoveController::capturePiece(int startingSqY, int startingSqX, int end
 }
 
 void BoardMoveController::epCapturePiece(int startingSqY, int startingSqX, int endingSqY, int endingSqX) {
-    removePiece(startingSqY, endingSqX);
+    removePiece(endingSqY, startingSqX);
     movePiece(startingSqY, startingSqX, endingSqY, endingSqX);
 }
 
 void BoardMoveController::castle(int startingSqY, int startingSqX, int endingSqY, int endingSqX) {
     movePiece(startingSqY, startingSqX, endingSqY, endingSqX);
-    if (endingSqX == 2)
-        movePiece(startingSqY, 0, endingSqY, 3);
+
+    boardGrid[2 * endingSqY + 1][2 * endingSqX].obstacle = 1;
+
+    if (endingSqY == 2)
+        movePiece(0, startingSqX, 3, startingSqX);
     else
-        movePiece(startingSqY, 7, endingSqY, 5);
+        movePiece(7, startingSqX, 5, startingSqX);
 }

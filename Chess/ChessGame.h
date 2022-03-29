@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "MoveManager.h"
 #include "Players.h"
+#include "APIhandler.h"
 
 #include "SDL.h"
 #include <windows.h>
@@ -35,8 +36,6 @@ bool colour = (board[y][x] & COLOURMASK) >> 7;\
 bool hasMoved = !(board[y][x] & MOVEMASK) >> 6;
 
 class Player;
-class Human;
-class RandAI;
 
 class ChessGame {
 private:
@@ -57,7 +56,7 @@ private:
 public:
 	//public game variables
 	uint8_t board[8][8] = { {0} };
-	bool isWhiteTurn = 1;
+	bool isPlayer1sTurn = 1;
 	int move = 0;
 
 	Player* player1;
@@ -70,6 +69,7 @@ public:
 
 	Renderer renderer;
 	MoveManager moveManager;
+	APIhandler APIhandler;
 
 	//load a board state from fen notation
 	void loadBoardFromFen(std::string fen);

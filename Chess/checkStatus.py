@@ -19,23 +19,10 @@ for i in client.board.stream_game_state(ID):
                 print(i["winner"])
                 if (i["winner"] == "white"):
                     status.writelines('w')
-                elif (i["winner"] == "black"):
-                    status.writelines('b')
                 else:
-                    status.writelines('0')
-            else:
-                status.writelines('0')
+                    status.writelines('b')
         else:
-            status.writelines('1')
+            status.writelines('0')
 
         status.close()
-    except:
-        print('')
-    try:
-        print(i["moves"][len(i["moves"])-4 : len(i["moves"])])
-        moves = open(r"moves.txt",'w')
-        moves.writelines(i["moves"][len(i["moves"])-4 : len(i["moves"])])
-        moves.close()
-        break
-    except:
-        continue
+                

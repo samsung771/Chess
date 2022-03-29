@@ -6,24 +6,32 @@ session = berserk.TokenSession("lip_J9yRSzhWmnPUALi1acUB")
 client = berserk.Client(session=session)
 looping = 1
 
-while(looping):
-    gameId = ''
+print("searching...")
+client.board.seek(10,0)
+
+while looping:
+    print(client.board.stream_incoming_events()[0])
+    """
     for i in client.board.stream_incoming_events():
-        if i["type"] == "challenge":
-            print ("\nchallenged")
-            print ("by " + i["challenge"]["challenger"]["name"] + "\n")
-            print (i["challenge"]["id"])
-            gameId = i["challenge"]["id"]
+        if not looping:
+            break
+        try:
+            print("you are playing as " + i["game"]["color"])
+            print("against " + i["game"]["opponent"]["username"])
+            
+            gameId = i["game"]["gameId"]
             iD = open(r"gameID.txt",'w')
             iD.writelines(gameId)
             iD.close()
-            client.challenges.accept(i["challenge"]["id"])  
-            print ("opponent is playing: " + i["challenge"]["finalColor"])
+            print('\n' + gameId)
+
             colour = open(r"colour.txt",'w')
-            if (i["challenge"]["finalColor"] == "black"):
+            if (i["game"]["color"] == "white"):
                 colour.writelines('0')
             else:
                 colour.writelines('1')                
             colour.close()
             looping = 0
-            break
+        except:
+            continue"""
+

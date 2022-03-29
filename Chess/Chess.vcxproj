@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="APIhandler.cpp" />
     <ClCompile Include="BoardMagnet.cpp" />
     <ClCompile Include="BoardMovement.cpp" />
     <ClCompile Include="ChessGame.cpp" />
@@ -162,6 +163,7 @@
     <ClCompile Include="Serial.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="APIhandler.h" />
     <ClInclude Include="BoardMagnet.h" />
     <ClInclude Include="BoardMovement.h" />
     <ClInclude Include="ChessGame.h" />
@@ -176,6 +178,7 @@
     <None Include="getMove.py" />
     <None Include="makeMove.py" />
     <None Include="resign.py" />
+    <None Include="seekGame.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

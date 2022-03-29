@@ -373,54 +373,51 @@ bool BoardPlayerAPI::update() {
 	//generate node matrix for pathfinding
 	movementController.genVectorBoard();
 
-	system("python getMove.py");
-	std::ifstream moveF;
-	moveF.open("moves.txt");
-	char move[4];
-	moveF.read(move, 4);
-		
-	//make the random move
+	std::vector<int> move = chessGamePtr->APIhandler.getMove();
 	int returnVal = chessGamePtr->moveManager.makeMove(
-		int(move[0]) - 97,
-		7 - (int(move[1]) - 49),
-		int(move[2]) - 97,
-		7 - (int(move[3]) - 49),
-		chessGamePtr->board[7 - (int(move[1]) - 49)][int(move[0]) - 97],
+		move[0],
+		move[1],
+		move[2],
+		move[3],
+		chessGamePtr->board[move[1]][move[0]],
 		chessGamePtr->board);
 
 	//if its a normal move, just move piece
 	if (returnVal == 1) {
-		movementController.movePiece(int(move[0]) - 97,
-			7 - (int(move[1]) - 49),
-			int(move[2]) - 97,
-			7 - (int(move[3]) - 49));
+		movementController.movePiece(
+			move[0],
+			move[1],
+			move[2],
+			move[3]);
 		return true;
 	}
 	//if its a capture the original piece needs to be moved
 	else if (returnVal == 3) {
-		movementController.capturePiece(int(move[0]) - 97,
-			7 - (int(move[1]) - 49),
-			int(move[2]) - 97,
-			7 - (int(move[3]) - 49));
+		movementController.capturePiece(
+			move[0],
+			move[1],
+			move[2],
+			move[3]);
 
 		return true;
 	}
 	//en passent move
 	else if (returnVal == 5) {
-		movementController.epCapturePiece(int(move[0]) - 97,
-			7 - (int(move[1]) - 49),
-			int(move[2]) - 97,
-			7 - (int(move[3]) - 49));
+		movementController.epCapturePiece(
+			move[0],
+			move[1],
+			move[2],
+			move[3]);
 
 		return true;
 	}
 	//castling
 	else if (returnVal == 4) {
-		movementController.castle(int(move[0]) - 97,
-			7 - (int(move[1]) - 49),
-			int(move[2]) - 97,
-			7 - (int(move[3]) - 49));
-
+		movementController.castle(
+			move[0],
+			move[1],
+			move[2],
+			move[3]);
 		return true;
 	}
 	//if its a promotion
@@ -430,10 +427,11 @@ bool BoardPlayerAPI::update() {
 		//promotion function
 		//i cant do this as it requires too many extra pieces
 
-		movementController.movePiece(int(move[0]) - 97,
-			7 - (int(move[1]) - 49),
-			int(move[2]) - 97,
-			7 - (int(move[3]) - 49));
+		movementController.movePiece(
+			move[0],
+			move[1],
+			move[2],
+			move[3]);
 		return true;
 	}
 	//if its a promotion and capture
@@ -443,10 +441,11 @@ bool BoardPlayerAPI::update() {
 		//promotion function
 		//i cant do this as it requires too many extra pieces
 
-		movementController.capturePiece(int(move[0]) - 97,
-			7 - (int(move[1]) - 49),
-			int(move[2]) - 97,
-			7 - (int(move[3]) - 49));
+		movementController.capturePiece(
+			move[0],
+			move[1],
+			move[2],
+			move[3]);
 		return true;
 	}
 	
@@ -455,7 +454,6 @@ bool BoardPlayerAPI::update() {
 
 
 MagnetPlayerAPI::MagnetPlayerAPI() {
-	system("python acceptChallenge.py");
 }
 
 bool MagnetPlayerAPI::update() {
@@ -492,28 +490,14 @@ bool MagnetPlayerAPI::update() {
 			);
 			//if its a valid move
 			if (returnVal) {
-				//generate command variables
-				char command[50] = "python makeMove.py ";
-				char ay[2] = { char((8 - pieceHeldY) + 48), 0 };
-				char ax[2] = { lettersLookup[pieceHeldX],   0 };
-				char by[2] = { char((8 - (move >> 3)) + 48),0 };
-				char bx[2] = { lettersLookup[move % 8],     0 };
-
-				//combine to one command
-				strcat_s(command, 50, ax);
-				strcat_s(command, 50, ay);
-				strcat_s(command, 50, bx);
-				strcat_s(command, 50, by);
-
-				//send command to shell
-				int pyReturn = system(command);
+				int pyReturn = chessGamePtr->APIhandler.makeMove(pieceHeldX, pieceHeldY, move % 8, move >> 3);
 				std::cout << pyReturn << '\n';
 
 				pieceHeld = 0;
 				chessGamePtr->renderer.pieceHeld = pieceHeld;
 
 				if (pyReturn)
-					return false;
+					return false; //move fails
 				return true;
 			}
 		}
@@ -540,7 +524,7 @@ APIHuman::APIHuman(int* mouseX, int* mouseY, bool* mouseCl) : Player() {
 	mousePosY = mouseY;
 	mouseClick = mouseCl;
 
-	system("python acceptChallenge.py");
+	//system("python acceptChallenge.py");
 }
 
 bool APIHuman::update() {
@@ -576,16 +560,7 @@ bool APIHuman::update() {
 				else {
 					int returnVal = chessGamePtr->moveManager.makeMove(pieceHeldX, pieceHeldY, squareX, squareY, pieceHeld, chessGamePtr->board);
 					if (returnVal) {
-						char command[50] = "python makeMove.py ";
-						char ay[2] = { char((8 - pieceHeldY) + 48),0 };
-						char ax[2] = { lettersLookup[pieceHeldX],0 };
-						char by[2] = { char((8 - squareY) + 48),0 };
-						char bx[2] = { lettersLookup[squareX],0 };
-						strcat_s(command, 50, ax);
-						strcat_s(command, 50, ay);
-						strcat_s(command, 50, bx);
-						strcat_s(command, 50, by);
-						system(command);
+						chessGamePtr->APIhandler.makeMove(pieceHeldX, pieceHeldY, squareX, squareY);
 					}
 					//if its normal move or capture
 					if (returnVal && (returnVal != 2 || returnVal != 6)) {
@@ -719,17 +694,21 @@ bool APIHuman::update() {
 
 
 bool APIPlayer::update() {
-	system("python getMove.py");
-	std::ifstream moveF;
-	moveF.open("moves.txt");
-	char move[4];
-	moveF.read(move, 4);
-	chessGamePtr->moveManager.makeMove(
-		int(move[0])-97,
-		7-(int(move[1])-49),
-		int(move[2])-97,
-		7-(int(move[3])-49),
-		chessGamePtr->board[7-(int(move[1]) - 49)][int(move[0]) - 97],
-		chessGamePtr->board);
+	std::vector<int> move = chessGamePtr->APIhandler.getMove();
+	if (move[0] == 10) 
+		chessGamePtr->renderer.state = 3;
+	else if (move[0] == 11)
+		chessGamePtr->renderer.state = 2;
+	else if (move[0] == 12)
+		chessGamePtr->renderer.state = 1;
+	else {
+		chessGamePtr->moveManager.makeMove(
+			move[0],
+			move[1],
+			move[2],
+			move[3],
+			chessGamePtr->board[move[1]][move[0]],
+			chessGamePtr->board);
+	}
 	return true;
 }

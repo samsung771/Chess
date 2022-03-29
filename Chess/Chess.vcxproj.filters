@@ -42,6 +42,9 @@
     <ClCompile Include="BoardMovement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="APIhandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MoveManager.h">
@@ -68,6 +71,9 @@
     <ClInclude Include="Serial.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="APIhandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="resign.py">
@@ -80,6 +86,9 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="makeMove.py">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="seekGame.py">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>

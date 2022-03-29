@@ -8,13 +8,8 @@
 #include <stdlib.h>
 #include <time.h>  
 #include <string>
-#include <iostream>
-#include <fstream>
 #include "BoardMagnet.h"
 #include "BoardMovement.h"
-
-const char lettersLookup[8] = {'a','b','c','d','e','f','g','h'};
-
 
 class ChessGame;
 

@@ -138,7 +138,7 @@ std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t 
 		//must not have moved and not be in check
 		if (!hasMoved && !inCheck) {
 			//kingside
-			for (int i = 4; i < 8; i++) {
+			for (int i = 5; i < 8; i++) {
 				int Rookpiece = board[y][i] & PIECEMASK;
 				bool Rookcolour = (board[y][i] & COLOURMASK) >> 7;
 				bool RookhasMoved = !((board[y][i] & MOVEMASK) >> 6);
@@ -149,7 +149,7 @@ std::vector<std::vector<int>> MoveManager::availableMoves(int x, int y, uint8_t 
 					break;
 			}
 			//queenside
-			for (int i = 4; i >= 0; i--) {
+			for (int i = 3; i >= 0; i--) {
 				int Rookpiece = board[y][i] & PIECEMASK;
 				bool Rookcolour = (board[y][i] & COLOURMASK) >> 7;
 				bool RookhasMoved = !((board[y][i] & MOVEMASK) >> 6);

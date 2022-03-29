@@ -1,9 +1,9 @@
 #include "ChessGame.h"
 
 void ChessGame::update() {
-	if (isWhiteTurn) {
+	if (isPlayer1sTurn) {
 		if (player1->update()) {
-			isWhiteTurn = !isWhiteTurn;
+			isPlayer1sTurn = !isPlayer1sTurn;
 
 			player1->check = moveManager.checkCheck(board, 0);
 			player2->check = moveManager.checkCheck(board, 1);
@@ -38,7 +38,7 @@ void ChessGame::update() {
 	}
 	else {
 		if (player2->update()) {
-			isWhiteTurn = !isWhiteTurn;
+			isPlayer1sTurn = !isPlayer1sTurn;
 
 			player1->check = moveManager.checkCheck(board, 0);
 			player2->check = moveManager.checkCheck(board, 1);
@@ -48,7 +48,7 @@ void ChessGame::update() {
 
 			moveManager.bCheck = player2->check;
 			moveManager.wCheck = player1->check;
-
+			
 			if (moveManager.getAllLegalMoves(0, board).size() == 0) {
 				//checkmate
 				if (player2->check) {
@@ -86,7 +86,7 @@ void ChessGame::handleEvents() {
 		//pressing the exit button
 		case SDL_QUIT:
 			isRunning = false;
-			system("python resign.py");
+			APIhandler.resign();
 			break;
 
 		//window resize event
@@ -191,11 +191,11 @@ void ChessGame::loadBoardFromFen(std::string fen) {
 			switch (i) {
 				if (parameterPointer == 0) {
 			case 'w':
-				isWhiteTurn = true;
+				isPlayer1sTurn = true;
 				parameterPointer++;
 				break;
 			case 'b':
-				isWhiteTurn = false;
+				isPlayer1sTurn = false;
 				parameterPointer++;
 				break;
 				}
@@ -256,15 +256,16 @@ ChessGame::ChessGame(Player* playerW, Player* playerB, int* mouseX, int* mouseY,
 }
 
 int ChessGame::Play() {
+	renderer.renderScreen(board);
+
+	if (APIhandler.waitForChallenge()) {
+		player1->colour = 1;
+		player2->colour = 0;
+		isPlayer1sTurn = false;
+	}
 	//main game loop
 	while (isRunning) {
 		handleEvents();
-
-		if (renderer.state == 0)
-			update();
-
-		else if (std::chrono::duration_cast<std::chrono::milliseconds> (current - lastCheckSecond).count() > 10000)
-			break;
 
 		current = std::chrono::steady_clock::now();
 
@@ -277,7 +278,7 @@ int ChessGame::Play() {
 
 		if (renderer.state == 0) {
 			if (std::chrono::duration_cast<std::chrono::milliseconds> (current - lastCheckSecond).count() > 1000) {
-				if (isWhiteTurn) {
+				if (isPlayer1sTurn) {
 					renderer.wTimer--;
 				}
 				else {
@@ -291,6 +292,12 @@ int ChessGame::Play() {
 			renderer.state = 2;
 		else if (renderer.bTimer <= 0)
 			renderer.state = 1;
+
+		if (renderer.state == 0)
+			update();
+
+		else if (std::chrono::duration_cast<std::chrono::milliseconds> (current - lastCheckSecond).count() > 10000)
+			break;
 	}
 
 	return 0;
