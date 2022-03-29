@@ -73,7 +73,7 @@ void Renderer::init() {
 
 		texture[i] = SDL_CreateTextureFromSurface(renderer, temp);
 
-		std::cout << files[i] << '\n' << SDL_GetError() << '\n' << texture[i] << '\n';
+		//std::cout << files[i] << '\n' << SDL_GetError() << '\n' << texture[i] << '\n';
 	}
 
 	temp = SDL_LoadBMP("staleMate.bmp");
@@ -105,8 +105,7 @@ void Renderer::renderButton(SDL_Colour col, int piece, int colour, int x, int y,
 	pos.y = y + squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2;
 	pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
 	pos.h = squareSize * pieceScale[piece];
-	if ((piece + colour * 6) != 0) 
-		piece++;
+	if ((piece + colour * 6) != 0) piece++;
 	SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos);
 }
 
@@ -143,8 +142,7 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 				pos.y = startingPosy + y * squareSize + squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2;
 				pos.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
 				pos.h = squareSize * pieceScale[piece];
-				if ((piece + colour * 6) != 0)
-					piece++;
+				if ((piece + colour * 6) != 0) piece++;
 				if (SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &pos) < 0)
 					std::cout << piece + colour * 6 << '\n' << texture[piece + colour * 6] << '\n' << SDL_GetError() << '\n';
 			}
@@ -210,15 +208,16 @@ void Renderer::renderScreen(uint8_t board[8][8]) {
 		int piece = log2(pieceHeld & PIECEMASK);
 		int colour = (pieceHeld & COLOURMASK) >> 7;
 
-		//render piece
-		SDL_Rect rect;
-		rect.x = *mousePosX - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
-		rect.y = *mousePosY - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
-		rect.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
-		rect.h = squareSize * pieceScale[piece];
-		if ((piece + colour * 6) != 0)
-			piece++;
-		SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
+		if (mousePosX && mousePosY) {
+			//render piece
+			SDL_Rect rect;
+			rect.x = *mousePosX - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
+			rect.y = *mousePosY - squareSize * (1 - pieceScale[piece] * pieceScalerW[piece]) / 2 - 9;
+			rect.w = squareSize * pieceScale[piece] * pieceScalerW[piece];
+			rect.h = squareSize * pieceScale[piece];
+			if ((piece + colour * 6) != 0) piece++;
+			SDL_RenderCopy(renderer, texture[piece + colour * 6], NULL, &rect);
+		}
 	}
 	
 	if (state != 0) {

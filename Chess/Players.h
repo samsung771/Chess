@@ -7,9 +7,13 @@
 #include "ChessGame.h"
 #include <stdlib.h>
 #include <time.h>  
+#include <string>
 #include <iostream>
+#include <fstream>
 #include "BoardMagnet.h"
 #include "BoardMovement.h"
+
+const char lettersLookup[8] = {'a','b','c','d','e','f','g','h'};
 
 
 class ChessGame;
@@ -26,7 +30,6 @@ public:
 
 	virtual bool update();
 };
-
 
 class Human : public Player {
 public:
@@ -62,6 +65,20 @@ public:
 	bool update();
 };
 
+class MagnetPlayerAPI : public Player {
+private:
+	BoardMagnetController magnetControl;
+public:
+	//original pos of piece
+	int pieceHeldX, pieceHeldY = 0;
+	//piece representation
+	uint8_t pieceHeld = 0;
+
+	MagnetPlayerAPI();
+
+	bool update();
+};
+
 class BoardPlayerRand : public Player {
 private:
 	BoardMoveController movementController;
@@ -69,18 +86,30 @@ public:
 	bool update();
 };
 
-/*
-class MiniMaxAI : public Player {
+class BoardPlayerAPI : public Player {
 private:
-	struct position {
-
-	};
-
-	int minimax(uint8_t board[8][8], int depth, bool maxPlayer, bool player, int alpha, int beta);
-
-	int staticEval(uint8_t board[8][8]);
-
+	BoardMoveController movementController;
 public:
 	bool update();
 };
-*/
+
+class APIHuman : public Player {
+public:
+	//mouse variables
+	int* mousePosX;
+	int* mousePosY;
+	bool* mouseClick;
+
+	//original pos of piece
+	int pieceHeldX, pieceHeldY = 0;
+	//piece representation
+	uint8_t pieceHeld = 0;
+
+	APIHuman(int* mouseX, int* mouseY, bool* mouseCl);
+
+	bool update();
+};
+
+class APIPlayer : public Player {
+	bool update();
+};

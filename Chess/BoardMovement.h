@@ -7,6 +7,10 @@
 class BoardMoveController {
 private:
     SerialController serialControl;
+    bool captureSquares[15] = { 0 };
+    int pieceCap = 0;
+
+    void removePiece(int sqY, int sqX);
 public:
 
     std::vector<std::vector<node>> boardGrid;
@@ -24,6 +28,12 @@ public:
     void moveToSquare(int x, int y);
 
     void movePiece(int startingSqX, int startingSqY, int endingSqX, int endingSqY);
+
+    void capturePiece(int startingSqY, int startingSqX, int endingSqY, int endingSqX);
+
+    void castle(int startingSqY, int startingSqX, int endingSqY, int endingSqX);
+        
+    void epCapturePiece(int startingSqY, int startingSqX, int endingSqY, int endingSqX);
 
     BoardMoveController();
 };

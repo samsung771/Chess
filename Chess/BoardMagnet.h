@@ -2,7 +2,6 @@
 #pragma once
 #include <vector>
 #include "Serial.h"
-#include "Pathfinding.h"
 
 
 class BoardMagnetController {

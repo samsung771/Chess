@@ -86,6 +86,7 @@ void ChessGame::handleEvents() {
 		//pressing the exit button
 		case SDL_QUIT:
 			isRunning = false;
+			system("python resign.py");
 			break;
 
 		//window resize event
@@ -241,7 +242,7 @@ ChessGame::ChessGame(Player* playerW, Player* playerB, int* mouseX, int* mouseY,
 	renderer.init();
 
 	//load from fen of standard starting positions
-	loadBoardFromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+	loadBoardFromFen(DEFAULT);
 
 	player1 = playerW;
 	player2 = playerB;

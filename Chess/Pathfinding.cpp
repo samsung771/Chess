@@ -1,4 +1,11 @@
 #include "Pathfinding.h"
+#include <iostream>
+#include <stdlib.h> 
+#include <conio.h>
+#include <windows.h> 
+
+//console handle for cursor movement
+static HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
 //operator overload for nodes
 bool operator== (node a, node* b)
@@ -88,8 +95,15 @@ std::vector<std::vector<int>> Astar(std::vector<std::vector<node>> grid, int Sx,
             //add node to queue if not already tested or an obstacle
             if (!nodeNeighbour->tested && !nodeNeighbour->obstacle) Queue.push_back(nodeNeighbour);
 
+            double adjacent = 0;
+
+            for (node* i : nodeNeighbour->neighbours) {
+                if (i->obstacle && i->diagonals) adjacent = 4;
+                else if (i->obstacle) adjacent = 10;
+            }
+
             //changes the local weight of the node if its smaller
-            double goalTest = nodeCurrent->lWeight + heuristic(nodeCurrent, nodeNeighbour);
+            double goalTest = nodeCurrent->lWeight + heuristic(nodeCurrent, nodeNeighbour) + adjacent;
 
             if (goalTest < nodeNeighbour->lWeight)
             {
@@ -117,6 +131,24 @@ std::vector<std::vector<int>> Astar(std::vector<std::vector<node>> grid, int Sx,
         //changes backtracker pointer to the parent of the current node
         backtracker = backtracker->parent;
     }
+
+    for (int y = 0; y < grid.size(); y++) {
+        for (int x = 0; x < grid[0].size(); x++) {
+            for (std::vector<int> i : trail) {
+                if (x == i[0] && y == i[1])
+                    SetConsoleTextAttribute(hConsole, 0x0002);
+            }
+            if (grid[y][x].obstacle)
+                std::cout << "o ";
+            else if (grid[y][x].tested)
+                std::cout << (int)grid[y][x].lWeight << " ";
+            else
+                std::cout << "_ ";
+            SetConsoleTextAttribute(hConsole, 0x0007);
+        }
+        std::cout << "\n";
+    }
+
 
     return trail;
 }

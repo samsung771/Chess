@@ -24,6 +24,8 @@
 #define QUEEN	   0b00010000
 #define KING	   0b00100000
 
+#define DEFAULT    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+
 #define FRAMECAP   30
 
 //macro to get the piece from its binary representation

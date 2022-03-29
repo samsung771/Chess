@@ -16,7 +16,7 @@
 #define MOVEMASK   0b01000000
 #define PIECEMASK  0b00111111
 
-#define TIMELIMIT  300
+#define TIMELIMIT  3599
 
 //macro to get the piece from its binary representation
 #define getPiece(x,y)\

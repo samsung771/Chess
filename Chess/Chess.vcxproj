@@ -171,6 +171,12 @@
     <ClInclude Include="Players.h" />
     <ClInclude Include="Serial.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="acceptChallenge.py" />
+    <None Include="getMove.py" />
+    <None Include="makeMove.py" />
+    <None Include="resign.py" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

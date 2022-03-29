@@ -1,29 +1,34 @@
 #include "MoveManager.h"
+#include <iostream>
 
 std::vector<std::vector<int>> MoveManager::raycast(int x, int y, int dx, int dy, int len, bool isWhite, uint8_t board[][8]) {
 	std::vector<std::vector<int>> path;
+	//keep looking until you run out of length
 	for (int i = 0; i < len; i++) {
 		//add vector
 		x += dx;
 		y += dy;
 
-		//check if it is still in play space w/ 1 at the end to indicate empty
+		//check if it is still in play space
 		if (y >= 0 && y < 8 && x >= 0 && x < 8) {
 			//add to ray if space is empty
 			if (board[y][x] == 0) {
 				path.push_back({ x,y, 0 });
 			}
-			//add to ray if the piece is an enemy w/ 1 at the end to indicate a capture
+			//add to ray if the piece is an enemy with 1 at the end to indicate a capture
 			else {
 				getPiece(x, y);
 				if (isWhite == colour) {
 					path.push_back({ x,y, 1 });
 				}
+				//stop ray
 				break;
 			}
 		}
+		//break if ray leaves the board
 		else break;
 	}
+	//return array of squares the ray passes through	
 	return path;
 }
 
@@ -238,7 +243,8 @@ std::vector<std::vector<int>> MoveManager::getAllLegalMoves(bool colourToCheck, 
 }
 
 bool MoveManager::checkCheck(uint8_t board[][8], bool colour) {
-	int x, y = 0;
+	int x = -1;
+	int y = -1;
 
 	//goes through each piece in the board
 	for (int i = 0; i < WIDTH; i++) {
@@ -250,6 +256,10 @@ bool MoveManager::checkCheck(uint8_t board[][8], bool colour) {
 		}
 	}
 
+	if (x < 0 || y < 0) {
+		std::cout << "Checking Error\n";
+		return 0;
+	}
 
 	//checks knight moves
 	for (int i = 0; i < 8; i++) {
@@ -292,6 +302,8 @@ bool MoveManager::checkCheck(uint8_t board[][8], bool colour) {
 int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squareY, uint8_t &pieceHeld, uint8_t board[][8]) {
 	int validMove = 0;
 	int capture = 0;
+	int castle = 0;
+	int enPassentMove = 0;
 
 	//checks square is within play space
 	if (squareX >= 0 && squareX < WIDTH && squareY >= 0 && squareY < HEIGHT) {
@@ -326,6 +338,7 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 								board[squareY][squareX - 1] = board[squareY][7];
 								board[squareY][7] = 0;
 							}
+							castle = 1;
 						}
 
 						//adds enPassent squares
@@ -343,6 +356,7 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 								else
 									board[squareY - 1][squareX] = 0;
 								enPassent[squareX + (!colour * 8)] = 0;
+								enPassentMove = 1;
 							}
 
 							if (squareY == (colour * 7)) {
@@ -391,9 +405,10 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 					}
 					validMove++;
 
+					//promote piece
 					if ((board[squareY][squareX] & PIECEMASK) == PAWN && squareY == (!colour * 7)) {
 						pieceHeld = 0;
-						return 2;
+						return 6;
 					}
 				}
 			}
@@ -406,6 +421,10 @@ int MoveManager::makeMove(int pieceHeldX, int pieceHeldY, int squareX, int squar
 	}
 	if (capture > 0)
 		return 3;
+	else if (castle > 0)
+		return 4;
+	else if (enPassentMove > 0)
+		return 5;
 	else if (validMove > 0)
 		return 1;
 	else

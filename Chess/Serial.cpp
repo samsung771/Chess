@@ -63,18 +63,20 @@ int SerialController::SerialRead(const char* buffer, unsigned int buf_size)
 
     int bytesToRead = 0;
 
+    //if there is data in the recieve buffer
     if (status.cbInQue > 0) {
+        //only read as much data that has been recieved
         if (status.cbInQue < buf_size)  bytesToRead = status.cbInQue;
         else bytesToRead = buf_size;
     }
 
+    //try to read buffer, if not print error msg
     if (!ReadFile(handle, (void*)buffer, bytesToRead, &bytesRead, 0)) {
         std::cout << "Read failed";
         if (!active) std::cout << " not connected";
         std::cout << std::endl;
         return 0;
     }
-
 
     return bytesRead;
 }
@@ -84,14 +86,30 @@ bool SerialController::SerialWrite(const char* buffer, unsigned int buf_size)
     DWORD bytesSend;
 
     Sleep(700);
+    
+    //print command that is sent
+    switch ((int)buffer[0]) {
+    case 1:
+        std::cout << "Move to:  " << ((int)buffer[1] * 256 + (int)buffer[2]) << "   " << ((int)buffer[3] * 256 + (int)buffer[4]) << '\n';
+        break;
+    case 3:
+        std::cout << "Home\n";
+        break;
+    case 5:
+        if (buffer[4])
+            std::cout << "Magnet on\n";
+        else
+            std::cout << "Magnet off\n";
+        break;
+    }
 
+    //try to write to buffer, if not print error msg
     if (!WriteFile(handle, (void*)buffer, buf_size, &bytesSend, 0)) {
         std::cout << "Write failed";
         if (!active) std::cout << " not connected";
         std::cout << std::endl;
         return false;
     }
-
 
     return true;
 }

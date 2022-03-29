@@ -69,4 +69,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="resign.py">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="acceptChallenge.py">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="getMove.py">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="makeMove.py">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
