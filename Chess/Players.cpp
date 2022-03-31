@@ -453,9 +453,6 @@ bool BoardPlayerAPI::update() {
 }
 
 
-MagnetPlayerAPI::MagnetPlayerAPI() {
-}
-
 bool MagnetPlayerAPI::update() {
 	//get next message
 	char move = magnetControl.update();
@@ -493,6 +490,11 @@ bool MagnetPlayerAPI::update() {
 				int pyReturn = chessGamePtr->APIhandler.makeMove(pieceHeldX, pieceHeldY, move % 8, move >> 3);
 				std::cout << pyReturn << '\n';
 
+				if (returnVal == 2 || returnVal == 6) {
+					//promotes to queen
+					chessGamePtr->moveManager.promotePiece(QUEEN, colour, chessGamePtr->board);
+				}
+
 				pieceHeld = 0;
 				chessGamePtr->renderer.pieceHeld = pieceHeld;
 
@@ -523,8 +525,6 @@ APIHuman::APIHuman(int* mouseX, int* mouseY, bool* mouseCl) : Player() {
 	mousePosX = mouseX;
 	mousePosY = mouseY;
 	mouseClick = mouseCl;
-
-	//system("python acceptChallenge.py");
 }
 
 bool APIHuman::update() {

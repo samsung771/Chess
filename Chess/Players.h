@@ -69,8 +69,6 @@ public:
 	//piece representation
 	uint8_t pieceHeld = 0;
 
-	MagnetPlayerAPI();
-
 	bool update();
 };
 
